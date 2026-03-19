@@ -191,7 +191,7 @@ frappe.ready(() => {
 	frappe.ready(() => {
 		function get_update_address_dialog() {
 			let d = new frappe.ui.Dialog({
-				title: "Select Address",
+				title: '{{ _("Select Address") }}',
 				fields: [{
 					'fieldtype': 'HTML',
 					'fieldname': 'address_picker',

@@ -2,7 +2,18 @@
 
 {% block title %} {{ _("Shopping Cart") }} {% endblock %}
 
-{% block header %}<h3 class="shopping-cart-header mt-2 mb-6">{{ _("Shopping Cart") }}</h1>{% endblock %}
+{% block header %}
+<div class="cart-header-wrapper">
+	{% set cart_line_count = doc.items|length %}
+	<h3 class="shopping-cart-header">
+		{% if cart_line_count == 1 %}
+			{{ _("You have {0} item in your cart").format(cart_line_count) }}
+		{% else %}
+			{{ _("You have {0} items in your cart").format(cart_line_count) }}
+		{% endif %}
+	</h3>
+</div>
+{% endblock %}
 
 {% block header_actions %}
 {% endblock %}
@@ -14,56 +25,28 @@
 {% if doc.items %}
 <div class="cart-container">
 	<div class="row m-0">
-		<!-- Left section -->
-		<div class="col-md-8">
-			<div class="frappe-card p-5 mb-4">
+		<!-- Left section - Cart Items -->
+		<div class="col-lg-8">
+			<div class="cart-items-section">
 				<div id="cart-error" class="alert alert-danger" style="display: none;"></div>
-				<div class="cart-items-header">
-					{{ _('Items') }}
+
+				<div class="cart-items-list">
+					{% include "templates/includes/cart/cart_items.html" %}
 				</div>
-				<table class="table mt-3 cart-table">
-					<thead>
-						<tr>
-							<th class="item-column">{{ _('Item') }}</th>
-							<th width="20%">{{ _('Quantity') }}</th>
-							{% if cart_settings.enable_checkout or cart_settings.show_price_in_quotation %}
-								<th width="20" class="text-right column-sm-view">{{ _('Subtotal') }}</th>
-							{% endif %}
-							<th width="10%" class="column-sm-view"></th>
-						</tr>
-					</thead>
-					<tbody class="cart-items">
-						{% include "templates/includes/cart/cart_items.html" %}
-					</tbody>
 
-					{% if cart_settings.enable_checkout or cart_settings.show_price_in_quotation %}
-						<tfoot class="cart-tax-items">
-							{% include "templates/includes/cart/cart_items_total.html" %}
-						</tfoot>
+				<div class="cart-footer-actions mt-4">
+					{% if cart_settings.enable_checkout %}
+						<a class="btn btn-outline-secondary" href="/orders">
+							{{ _('View Past Orders') }}
+						</a>
+					{% else %}
+						<a class="btn btn-outline-secondary" href="/quotations">
+							{{ _('View Past Quotes') }}
+						</a>
 					{% endif %}
-				</table>
-
-				<div class="row mt-2">
-					<div class="col-3">
-						{% if cart_settings.enable_checkout %}
-							<a class="btn btn-primary-light font-md" href="/orders">
-								{{ _('Past Orders') }}
-							</a>
-						{% else %}
-							<a class="btn btn-primary-light font-md" href="/quotations">
-								{{ _('Past Quotes') }}
-							</a>
-						{% endif %}
-					</div>
-					<div class="col-9">
-						{% if doc.items %}
-						<div class="place-order-container">
-							<a class="btn btn-primary-light mr-2 font-md" href="/all-products">
-								{{ _('Continue Shopping') }}
-							</a>
-						</div>
-						{% endif %}
-					</div>
+					<a class="btn btn-outline-secondary" href="/all-products">
+						{{ _('Continue Shopping') }}
+					</a>
 				</div>
 			</div>
 
@@ -79,33 +62,32 @@
 				{% endif %}
 		</div>
 
-		<!-- Right section -->
-		<div class="col-md-4">
-			<div class="cart-payment-addresses">
-				<!-- Apply Coupon Code  -->
+		<!-- Right section - Payment Summary -->
+		<div class="col-lg-4">
+			<div class="cart-summary-section">
 				{% set show_coupon_code = cart_settings.show_apply_coupon_code_in_website and cart_settings.enable_checkout %}
 				{% set coupon_code = doc.coupon_code if doc.coupon_code else "" %}
 
-				{% if show_coupon_code == 1%}
+				{% if show_coupon_code == 1 %}
 					{% if coupon_code %}
 						{% include "templates/includes/cart/coupon_code.html" %}
 					{% else %}
-					<div class="mb-3">
-						<div class="d-flex w-100">
-							<input type="text" class="txtcoupon form-control mr-3 flex-grow-1 font-md" placeholder="{{ _("Enter coupon code") }}" name="txtcouponcode"  ></input>
-							<button class="btn btn-secondary btn-sm bt-coupon font-md flex-shrink-0">{{ _("Apply") }}</button>
-							<input type="hidden" class="txtreferral_sales_partner font-md" placeholder="Enter Sales Partner" name="txtreferral_sales_partner" type="text"></input>
+						<div class="mb-3">
+							<div class="d-flex w-100">
+								<input type="text" class="txtcoupon form-control mr-2 flex-grow-1" placeholder="{{ _("Coupon code") }}" name="txtcouponcode"></input>
+								<button class="btn btn-outline-secondary btn-sm bt-coupon">{{ _("Apply") }}</button>
+								<input type="hidden" class="txtreferral_sales_partner" placeholder="{{ _("Enter Sales Partner") }}" name="txtreferral_sales_partner" type="text"></input>
 							</div>
-					</div>
+						</div>
 					{% endif %}
 				{% endif %}
 
-				<div class="mb-3 frappe-card p-5">
+				<div class="cart-summary-card">
 					<div class="payment-summary">
 						{% include "templates/includes/cart/cart_payment_summary.html" %}
 					</div>
 
-					<div class="place-order">
+					<div class="cart-action-buttons">
 						{% include "templates/includes/cart/place_order.html" %}
 					</div>
 				</div>

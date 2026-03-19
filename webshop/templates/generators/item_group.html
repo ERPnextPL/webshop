@@ -1,4 +1,4 @@
-{% from "webshop/templates/includes/macros.html" import field_filter_section, attribute_filter_section, discount_range_filters %}
+{% from "webshop/templates/includes/macros.html" import field_filter_section, discount_range_filters %}
 {% extends "templates/web.html" %}
 
 {% block header %}
@@ -46,9 +46,6 @@
 				</div>
 				<!-- field filters -->
 				{{ field_filter_section(field_filters) }}
-
-				<!-- attribute filters -->
-				{{ attribute_filter_section(attribute_filters) }}
 
 			</div>
 

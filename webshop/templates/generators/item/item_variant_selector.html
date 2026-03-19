@@ -1,0 +1,20 @@
+{% if shopping_cart and shopping_cart.cart_settings.enabled %}
+{% set cart_settings = shopping_cart.cart_settings %}
+
+<div class="variant-selector product-variant-selector"
+	data-item-code="{{ doc.item_code }}"
+	data-item-name="{{ doc.web_item_name }}"
+	data-ui-mode="{{ variant_ui_mode or 'b2c' }}"
+	data-enable-checkout="{{ cart_settings.enable_checkout | int }}"
+	data-show-price="{{ cart_settings.show_price | int }}"
+	data-allow-backorder="{{ cart_settings.allow_items_not_in_stock | int }}"
+>
+	<div class="variant-selector__content"></div>
+</div>
+
+{% if cart_settings.show_contact_us_button %}
+	<div class="mb-5">
+		{% include "templates/generators/item/item_inquiry.html" %}
+	</div>
+{% endif %}
+{% endif %}

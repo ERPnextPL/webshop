@@ -1,13 +1,26 @@
-<div class="card h-100">
-	<div class="card-body p-0">
-		{% if cart_settings.enable_checkout %}
-			<button class="btn btn-primary btn-place-order font-md w-100" type="button">
-				{{ _("Place Order") }}
-			</button>
-		{% else %}
-			<button class="btn btn-primary btn-request-for-quotation font-md w-100" type="button">
-				{{ _("Request for Quote") }}
-			</button>
-		{% endif %}
-	</div>
+<div class="cart-action-buttons-group">
+	{% if cart_settings.enable_checkout %}
+		<button class="btn btn-primary btn-place-order" type="button">
+			{{ _("Checkout") }}
+		</button>
+		<button class="btn btn-outline-secondary btn-request-for-quotation" type="button">
+			{{ _("Request Quote") }}
+		</button>
+		<button class="btn btn-outline-secondary btn-export-csv" type="button">
+			{{ _("Export Cart") }} (.csv)
+		</button>
+		<button class="btn btn-outline-secondary btn-empty-cart" type="button">
+			{{ _("Empty Cart") }}
+		</button>
+	{% else %}
+		<button class="btn btn-primary btn-request-for-quotation" type="button">
+			{{ _("Request Quote") }}
+		</button>
+		<button class="btn btn-outline-secondary btn-export-csv" type="button">
+			{{ _("Export Cart") }} (.csv)
+		</button>
+		<button class="btn btn-outline-secondary btn-empty-cart" type="button">
+			{{ _("Empty Cart") }}
+		</button>
+	{% endif %}
 </div>

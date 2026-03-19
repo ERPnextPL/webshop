@@ -10,65 +10,128 @@
 {% endblock %}
 
 {% block page_content %}
-<div class="product-container item-main">
-	{% from "webshop/templates/includes/macros.html" import product_image %}
-	<div class="item-content">
-		<div class="product-page-content" itemscope itemtype="http://schema.org/Product">
-			<!-- Image, Description, Add to Cart -->
-			<div class="row mb-5">
-				{% include "templates/generators/item/item_image.html" %}
-				{% include "templates/generators/item/item_details.html" %}
-			</div>
-		</div>
-	</div>
-</div>
-
-<!-- Additional Info/Reviews, Recommendations -->
-<div class="d-flex">
-	{% set show_recommended_items = recommended_items and shopping_cart.cart_settings.enable_recommendations %}
-	{% set info_col = 'col-9' if show_recommended_items else 'col-12' %}
-
-	{% set padding_top = 'pt-0' if (show_tabs and tabs) else '' %}
-
-	<div class="product-container mt-4 {{ padding_top }} {{ info_col }}">
-		<div class="item-content {{ 'mt-minus-2' if (show_tabs and tabs) else '' }}">
-			<div class="product-page-content" itemscope itemtype="http://schema.org/Product">
-				<!-- Product Specifications Table Section -->
-				{% if show_tabs and tabs %}
-					<div class="category-tabs">
-						<!-- tabs -->
-							{{ web_block("Section with Tabs", values=tabs, add_container=0,
-								add_top_padding=0, add_bottom_padding=0)
-							}}
-					</div>
-				{% elif website_specifications %}
-					{% include "templates/generators/item/item_specifications.html"%}
-				{% endif %}
-
-				<!-- Advanced Custom Website Content -->
-				{{ doc.website_content or '' }}
-
-				<!-- Reviews and Comments -->
-				{% if shopping_cart.cart_settings.enable_reviews and not doc.has_variants %}
-					{% include "templates/generators/item/item_reviews.html"%}
-				{% endif %}
+<div class="product-page-shell">
+	<div class="product-container item-main product-main-card">
+		{% from "webshop/templates/includes/macros.html" import product_image %}
+		<div class="item-content">
+			<div class="product-page-content product-page-content--hero" itemscope itemtype="http://schema.org/Product">
+				<div class="row mb-0 product-hero-row">
+					{% include "templates/generators/item/item_image.html" %}
+					{% include "templates/generators/item/item_details.html" %}
+				</div>
 			</div>
 		</div>
 	</div>
 
-	<!-- Recommended Items -->
-	{% if show_recommended_items %}
-		<div class="mt-4 col-3 recommended-item-section">
-			<span class="recommendation-header">{{ _("Recommended") }}</span>
-			<div class="product-container mt-2 recommendation-container">
-				{% for item in recommended_items %}
-					{{ recommended_item_row(item) }}
-				{% endfor %}
+	<!-- Description Section -->
+	{% set description_html = doc.web_long_description or doc.description or '' %}
+	{% if frappe.utils.strip_html(description_html) %}
+	<div class="product-section-card" itemprop="description" itemscope>
+		<div class="product-section-heading product-section-toggle" data-target="product-description-body">
+			<div class="product-section-heading-left">
+				<span class="product-section-dot"></span>
+				<span>{{ _("Description") }}</span>
 			</div>
+			<button class="product-section-toggle-btn" aria-expanded="true" aria-label="{{ _("Toggle description") }}">
+				<span class="product-section-toggle-icon">&#8722;</span>
+			</button>
 		</div>
+		<div class="product-section-body" id="product-description-body">
+			{{ _(description_html) | safe }}
+		</div>
+	</div>
 	{% endif %}
 
+	<!-- Specifications Section -->
+	{% if website_specifications %}
+	<div class="product-section-card">
+		<div class="product-section-heading product-section-toggle" data-target="product-specifications-body">
+			<div class="product-section-heading-left">
+				<span class="product-section-dot"></span>
+				<span>{{ _("Specifications") }}</span>
+			</div>
+			<button class="product-section-toggle-btn" aria-expanded="false" aria-label="{{ _("Toggle specifications") }}">
+				<span class="product-section-toggle-icon">+</span>
+			</button>
+		</div>
+		<div class="product-section-body collapsed" id="product-specifications-body">
+			<table class="product-spec-table">
+				{% for d in website_specifications %}
+				<tr>
+					<td class="product-spec-label">{{ _(d.label) }}</td>
+					<td class="product-spec-value">{{ _(d.description) }}</td>
+				</tr>
+				{% endfor %}
+			</table>
+		</div>
+	</div>
+	{% endif %}
+
+	<!-- Tabs (if configured instead of specs) -->
+	{% if show_tabs and tabs %}
+	<div class="product-section-card">
+		<div class="item-content">
+			<div class="product-page-content">
+				<div class="category-tabs">
+					{{ web_block("Section with Tabs", values=tabs, add_container=0,
+						add_top_padding=0, add_bottom_padding=0)
+					}}
+				</div>
+			</div>
+		</div>
+	</div>
+	{% endif %}
+
+	<!-- Advanced Custom Website Content -->
+	{% if doc.website_content %}
+	<div class="product-section-card">
+		{{ doc.website_content }}
+	</div>
+	{% endif %}
+
+	<!-- Reviews -->
+	{% if shopping_cart.cart_settings.enable_reviews and not doc.has_variants %}
+	<div class="product-section-card">
+		{% include "templates/generators/item/item_reviews.html"%}
+	</div>
+	{% endif %}
 </div>
+
+<!-- Other customers also viewed -->
+{% set show_recommended_items = recommended_items and shopping_cart.cart_settings.enable_recommendations %}
+{% if show_recommended_items %}
+<div class="product-recommended-section">
+	<h3 class="product-recommended-heading">{{ _("Other customers also viewed") }}</h3>
+	<div class="product-recommended-grid">
+		{% from "webshop/templates/includes/macros.html" import recommended_item_row %}
+		{% for item in recommended_items %}
+			{{ recommended_item_row(item) }}
+		{% endfor %}
+	</div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block page_footer %}
+<script>
+	document.querySelectorAll('.product-section-toggle').forEach(function(toggle) {
+		toggle.addEventListener('click', function() {
+			var btn = toggle.querySelector('.product-section-toggle-btn');
+			var icon = toggle.querySelector('.product-section-toggle-icon');
+			var targetId = toggle.dataset.target;
+			var body = document.getElementById(targetId);
+			if (body.classList.contains('collapsed')) {
+				body.classList.remove('collapsed');
+				icon.innerHTML = '&#8722;';
+				btn.setAttribute('aria-expanded', 'true');
+			} else {
+				body.classList.add('collapsed');
+				icon.innerHTML = '+';
+				btn.setAttribute('aria-expanded', 'false');
+			}
+		});
+	});
+</script>
 {% endblock %}
 
 {% block base_scripts %}

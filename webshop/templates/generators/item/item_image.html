@@ -1,33 +1,53 @@
-{% set column_size = 5 if slides else 4 %}
-<div class="col-md-{{ column_size }} h-100 d-flex mb-4">
-	{% if slides %}
-		<div class="item-slideshow d-flex flex-column mr-3">
-			{% for item in slides %}
-			<img class="item-slideshow-image mb-2 {% if loop.first %}active{% endif %}"
-					src="{{ item.image }}" alt="{{ item.heading }}">
-			{% endfor %}
+{% set column_size = 5 %}
+<div class="col-md-{{ column_size }} product-media-column">
+	{% set gallery_images = gallery_images or [] %}
+
+	{% if gallery_images %}
+		<div class="item-gallery-shell" data-gallery-size="{{ gallery_images | length }}">
+			<div class="item-gallery-stage">
+				<div class="item-gallery-stage-frame">
+					<img
+						itemprop="image"
+						class="product-gallery-stage-image website-image"
+						src="{{ frappe.utils.quoted(gallery_images[0].image) | abs_url }}"
+						alt="{{ _(gallery_images[0].heading or doc.item_name) }}"
+					>
+				</div>
+			</div>
+
+			<div class="item-gallery-footer">
+				<div class="item-gallery-nav {% if gallery_images | length < 2 %}item-gallery-nav--single{% endif %}">
+					<button type="button" class="item-gallery-nav-btn item-gallery-prev" aria-label="{{ _('Previous image') }}" {% if gallery_images | length < 2 %}disabled{% endif %}>
+						<svg viewBox="0 0 15 15" aria-hidden="true" focusable="false">
+							<path d="M1.944 7.5h11.112M5.722 11.278 1.944 7.5l3.778-3.778"></path>
+						</svg>
+					</button>
+					<button type="button" class="item-gallery-nav-btn item-gallery-next" aria-label="{{ _('Next image') }}" {% if gallery_images | length < 2 %}disabled{% endif %}>
+						<svg viewBox="0 0 15 15" aria-hidden="true" focusable="false">
+							<path d="M13.056 7.5H1.944M9.278 3.722 13.056 7.5l-3.778 3.778"></path>
+						</svg>
+					</button>
+				</div>
+
+				{% if gallery_images | length > 1 %}
+					<div class="item-gallery-thumbs" role="tablist" aria-label="{{ _('Product images') }}">
+						{% for item in gallery_images %}
+							<button
+								type="button"
+								class="item-gallery-thumb {% if loop.first %}active{% endif %}"
+								data-index="{{ loop.index0 }}"
+								data-image="{{ frappe.utils.quoted(item.image) | abs_url }}"
+								data-alt="{{ _(item.heading or doc.item_name) }}"
+								aria-label="{{ _('Show image {0}', [loop.index]) }}"
+							>
+								<img class="item-gallery-thumb-image" src="{{ frappe.utils.quoted(item.image) | abs_url }}" alt="{{ _(item.heading or doc.item_name) }}">
+							</button>
+						{% endfor %}
+					</div>
+				{% endif %}
+			</div>
 		</div>
-		{{ product_image(slides[0].image, 'product-image') }}
-		<!-- Simple image slideshow -->
-		<script>
-			frappe.ready(() => {
-				$('.page_content').on('click', '.item-slideshow-image', (e) => {
-					const $img = $(e.currentTarget);
-					const link = $img.prop('src');
-					const $product_image = $('.product-image');
-					$product_image.find('a').prop('href', link);
-					$product_image.find('img').prop('src', link);
-
-					$('.item-slideshow-image').removeClass('active');
-					$img.addClass('active');
-				});
-			})
-		</script>
-	{% else %}
-		{{ product_image(doc.website_image, alt=doc.website_image_alt or doc.item_name) }}
 	{% endif %}
-
-	<!-- Simple image preview -->
 
 	<div class="image-zoom-view" style="display: none;">
 		<button type="button" class="close" aria-label="Close">
@@ -78,7 +98,51 @@
 	frappe.ready(() => {
 		const $zoom_wrapper = $('.image-zoom-view');
 
-		$('.website-image').on('click', (e) => {
+		$('.item-gallery-shell').each((_, shell) => {
+			const $shell = $(shell);
+			const $stageImage = $shell.find('.product-gallery-stage-image');
+			const $thumbs = $shell.find('.item-gallery-thumb');
+			const $prev = $shell.find('.item-gallery-prev');
+			const $next = $shell.find('.item-gallery-next');
+			const gallerySize = Number($shell.data('gallery-size') || 0);
+			let activeIndex = 0;
+
+			const updateNavState = () => {
+				if (gallerySize < 2) {
+					$prev.prop('disabled', true);
+					$next.prop('disabled', true);
+					return;
+				}
+
+				$prev.prop('disabled', activeIndex <= 0);
+				$next.prop('disabled', activeIndex >= gallerySize - 1);
+			};
+
+			const activateImage = (index) => {
+				const $thumb = $thumbs.eq(index);
+				if (!$thumb.length) {
+					return;
+				}
+
+				activeIndex = index;
+				$stageImage.prop('src', $thumb.data('image'));
+				$stageImage.prop('alt', $thumb.data('alt'));
+				$thumbs.removeClass('active');
+				$thumb.addClass('active');
+				updateNavState();
+			};
+
+			$thumbs.on('click', function() {
+				activateImage(Number($(this).data('index') || 0));
+			});
+
+			$prev.on('click', () => activateImage(Math.max(0, activeIndex - 1)));
+			$next.on('click', () => activateImage(Math.min(gallerySize - 1, activeIndex + 1)));
+
+			updateNavState();
+		});
+
+		$('.page_content').on('click', '.product-gallery-stage-image', (e) => {
 			e.preventDefault();
 			const $img = $(e.target);
 			const src = $img.prop('src');
