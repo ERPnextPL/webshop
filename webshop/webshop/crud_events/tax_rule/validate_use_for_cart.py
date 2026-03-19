@@ -26,9 +26,7 @@ def execute(doc, method=None):
 
     frappe.msgprint(
         _(
-            """
-            Enabling 'Use for Shopping Cart', as Shopping Cart is enabled
-            and there should be at least one Tax Rule for Shopping Cart
-            """
+            "Enabling 'Use for Shopping Cart', as Shopping Cart is enabled and there should be at least "
+            "one Tax Rule for Shopping Cart"
         )
     )

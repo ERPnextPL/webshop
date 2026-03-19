@@ -1,6 +1,8 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
 import frappe
+from frappe import _
+from frappe.translate import get_messages_for_app
 
 from webshop.webshop.doctype.webshop_settings.webshop_settings import is_cart_enabled
 
@@ -40,6 +42,48 @@ def clear_cart_count(login_manager):
 def update_website_context(context):
 	cart_enabled = is_cart_enabled()
 	context["shopping_cart_enabled"] = cart_enabled
+
+	# Website pages don't receive JS translations by default.
+	# Inject webshop-specific messages into boot payload for __() in frontend JS.
+	boot = context.get("boot") or {}
+	boot_messages = boot.get("__messages") or {}
+	boot_messages.update(get_website_messages())
+	boot["__messages"] = boot_messages
+	context["boot"] = boot
+
+
+def get_website_messages():
+	lang = frappe.local.lang or "en"
+	cache_key = f"webshop_website_messages::{lang}"
+	cached = frappe.cache().get_value(cache_key)
+	if cached:
+		return cached
+
+	messages = {}
+	for message_data in get_messages_for_app("webshop", deduplicate=False):
+		source_text = ""
+		translation_context = None
+
+		if isinstance(message_data, tuple):
+			if len(message_data) >= 2:
+				source_text = message_data[1]
+			if len(message_data) >= 3:
+				translation_context = message_data[2]
+		elif isinstance(message_data, str):
+			source_text = message_data
+
+		if not source_text:
+			continue
+
+		key = (
+			f"{source_text}:{translation_context}"
+			if translation_context
+			else source_text
+		)
+		messages[key] = _(source_text, context=translation_context)
+
+	frappe.cache().set_value(cache_key, messages)
+	return messages
 
 
 def is_customer():
