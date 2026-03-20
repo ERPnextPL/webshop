@@ -6,159 +6,195 @@ from frappe.utils import floor
 
 
 class ProductFiltersBuilder:
-	def __init__(self, item_group=None):
-		if not item_group:
-			self.doc = frappe.get_doc("Webshop Settings")
-		else:
-			self.doc = frappe.get_doc("Item Group", item_group)
+    def __init__(self, item_group=None):
+        if not item_group:
+            self.doc = frappe.get_doc("Webshop Settings")
+        else:
+            self.doc = frappe.get_doc("Item Group", item_group)
 
-		self.item_group = item_group
+        self.item_group = item_group
 
-	def get_field_filters(self):
-		from webshop.webshop.doctype.override_doctype.item_group import get_child_groups_for_website
+    def get_field_filters(self):
+        from webshop.webshop.doctype.override_doctype.item_group import (
+            get_child_groups_for_website,
+        )
 
-		if not self.item_group and not self.doc.enable_field_filters:
-			return
+        filter_fields = []
+        if self.item_group or self.doc.enable_field_filters:
+            filter_fields = [row.fieldname for row in self.doc.filter_fields]
 
-		fields, filter_data = [], []
-		filter_fields = [row.fieldname for row in self.doc.filter_fields]  # fields in settings
+        if "item_group" not in filter_fields:
+            filter_fields.insert(0, "item_group")
 
-		# filter valid field filters i.e. those that exist in Website Item
-		web_item_meta = frappe.get_meta("Website Item", cached=True)
-		fields = [
-			web_item_meta.get_field(field) for field in filter_fields if web_item_meta.has_field(field)
-		]
+        if not filter_fields:
+            return []
 
-		for df in fields:
-			item_filters, item_or_filters = {"published": 1}, []
-			link_doctype_values = self.get_filtered_link_doctype_records(df)
+        fields, filter_data = [], []
 
-			if df.fieldtype == "Link":
-				if self.item_group:
-					include_child = frappe.db.get_value("Item Group", self.item_group, "include_descendants")
-					if include_child:
-						include_groups = get_child_groups_for_website(self.item_group, include_self=True)
-						include_groups = [x.name for x in include_groups]
-						item_or_filters.extend(
-							[
-								["item_group", "in", include_groups],
-								["Website Item Group", "item_group", "=", self.item_group],  # consider website item groups
-							]
-						)
-					else:
-						item_or_filters.extend(
-							[
-								["item_group", "=", self.item_group],
-								["Website Item Group", "item_group", "=", self.item_group],  # consider website item groups
-							]
-						)
+        # filter valid field filters i.e. those that exist in Website Item
+        web_item_meta = frappe.get_meta("Website Item", cached=True)
+        fields = [
+            web_item_meta.get_field(field)
+            for field in filter_fields
+            if web_item_meta.has_field(field)
+        ]
 
-				# exclude variants if mentioned in settings
-				if frappe.db.get_single_value("Webshop Settings", "hide_variants"):
-					item_filters["variant_of"] = ["is", "not set"]
+        for df in fields:
+            item_filters, item_or_filters = {"published": 1}, []
+            link_doctype_values = self.get_filtered_link_doctype_records(df)
 
-				# Get link field values attached to published items
-				item_values = frappe.get_all(
-					"Website Item",
-					fields=[df.fieldname],
-					filters=item_filters,
-					or_filters=item_or_filters,
-					distinct="True",
-					pluck=df.fieldname,
-				)
+            if df.fieldtype == "Link":
+                if self.item_group:
+                    include_child = frappe.db.get_value(
+                        "Item Group", self.item_group, "include_descendants"
+                    )
+                    if include_child:
+                        include_groups = get_child_groups_for_website(
+                            self.item_group, include_self=True
+                        )
+                        include_groups = [x.name for x in include_groups]
+                        item_or_filters.extend(
+                            [
+                                ["item_group", "in", include_groups],
+                                [
+                                    "Website Item Group",
+                                    "item_group",
+                                    "=",
+                                    self.item_group,
+                                ],  # consider website item groups
+                            ]
+                        )
+                    else:
+                        item_or_filters.extend(
+                            [
+                                ["item_group", "=", self.item_group],
+                                [
+                                    "Website Item Group",
+                                    "item_group",
+                                    "=",
+                                    self.item_group,
+                                ],  # consider website item groups
+                            ]
+                        )
 
-				values = list(set(item_values) & link_doctype_values)  # intersection of both
-			else:
-				# table multiselect
-				values = list(link_doctype_values)
+                # exclude variants if mentioned in settings
+                if frappe.db.get_single_value("Webshop Settings", "hide_variants"):
+                    item_filters["variant_of"] = ["is", "not set"]
 
-			# Remove None
-			if None in values:
-				values.remove(None)
+                # Get link field values attached to published items
+                item_values = frappe.get_all(
+                    "Website Item",
+                    fields=[df.fieldname],
+                    filters=item_filters,
+                    or_filters=item_or_filters,
+                    distinct="True",
+                    pluck=df.fieldname,
+                )
 
-			if values:
-				filter_data.append([df, values])
+                if df.fieldname == "item_group":
+                    values = sorted({value for value in item_values if value})
+                else:
+                    values = list(
+                        set(item_values) & link_doctype_values
+                    )  # intersection of both
+            else:
+                # table multiselect
+                values = list(link_doctype_values)
 
-		return filter_data
+            # Remove None
+            if None in values:
+                values.remove(None)
 
-	def get_filtered_link_doctype_records(self, field):
-		"""
-		Get valid link doctype records depending on filters.
-		Apply enable/disable/show_in_website filter.
-		Returns:
-		        set: A set containing valid record names
-		"""
-		link_doctype = field.get_link_doctype()
-		meta = frappe.get_meta(link_doctype, cached=True) if link_doctype else None
-		if meta:
-			filters = self.get_link_doctype_filters(meta)
-			link_doctype_values = set(d.name for d in frappe.get_all(link_doctype, filters))
+            if values:
+                filter_data.append([df, values])
 
-		return link_doctype_values if meta else set()
+        return filter_data
 
-	def get_link_doctype_filters(self, meta):
-		"Filters for Link Doctype eg. 'show_in_website'."
-		filters = {}
-		if not meta:
-			return filters
+    def get_filtered_link_doctype_records(self, field):
+        """
+        Get valid link doctype records depending on filters.
+        Apply enable/disable/show_in_website filter.
+        Returns:
+                set: A set containing valid record names
+        """
+        link_doctype = field.get_link_doctype()
+        meta = frappe.get_meta(link_doctype, cached=True) if link_doctype else None
+        if meta:
+            filters = self.get_link_doctype_filters(meta)
+            link_doctype_values = set(
+                d.name for d in frappe.get_all(link_doctype, filters)
+            )
 
-		if meta.has_field("enabled"):
-			filters["enabled"] = 1
-		if meta.has_field("disabled"):
-			filters["disabled"] = 0
-		if meta.has_field("show_in_website"):
-			filters["show_in_website"] = 1
+        return link_doctype_values if meta else set()
 
-		return filters
+    def get_link_doctype_filters(self, meta):
+        "Filters for Link Doctype eg. 'show_in_website'."
+        filters = {}
+        if not meta:
+            return filters
 
-	def get_attribute_filters(self):
-		if not self.item_group and not self.doc.enable_attribute_filters:
-			return
+        if meta.has_field("enabled"):
+            filters["enabled"] = 1
+        if meta.has_field("disabled"):
+            filters["disabled"] = 0
+        if meta.has_field("show_in_website"):
+            filters["show_in_website"] = 1
 
-		attributes = [row.attribute for row in self.doc.filter_attributes]
+        return filters
 
-		if not attributes:
-			return []
+    def get_attribute_filters(self):
+        if not self.item_group and not self.doc.enable_attribute_filters:
+            return
 
-		result = frappe.get_all(
-			"Item Variant Attribute",
-			filters={"attribute": ["in", attributes], "attribute_value": ["is", "set"]},
-			fields=["attribute", "attribute_value"],
-			distinct=True,
-		)
+        attributes = [row.attribute for row in self.doc.filter_attributes]
 
-		attribute_value_map = {}
-		for d in result:
-			attribute_value_map.setdefault(d.attribute, []).append(d.attribute_value)
+        if not attributes:
+            return []
 
-		out = []
-		for attribute in attributes:
-			if attribute not in attribute_value_map:
-				continue
+        result = frappe.get_all(
+            "Item Variant Attribute",
+            filters={"attribute": ["in", attributes], "attribute_value": ["is", "set"]},
+            fields=["attribute", "attribute_value"],
+            distinct=True,
+        )
 
-			values = attribute_value_map[attribute]
-			out.append(frappe._dict(name=attribute, item_attribute_values=values))
+        attribute_value_map = {}
+        for d in result:
+            attribute_value_map.setdefault(d.attribute, []).append(d.attribute_value)
 
-		return out
+        out = []
+        for attribute in attributes:
+            if attribute not in attribute_value_map:
+                continue
 
-	def get_discount_filters(self, discounts):
-		discount_filters = []
+            values = attribute_value_map[attribute]
+            out.append(frappe._dict(name=attribute, item_attribute_values=values))
 
-		# [25.89, 60.5] min max
-		min_discount, max_discount = discounts[0], discounts[1]
-		# [25, 60] rounded min max
-		min_range_absolute, max_range_absolute = floor(min_discount), floor(max_discount)
+        return out
 
-		min_range = int(min_discount - (min_range_absolute % 10))  # 20
-		max_range = int(max_discount - (max_range_absolute % 10))  # 60
+    def get_discount_filters(self, discounts):
+        discount_filters = []
 
-		min_range = (
-			(min_range + 10) if min_range != min_range_absolute else min_range
-		)  # 30 (upper limit of 25.89 in range of 10)
-		max_range = (max_range + 10) if max_range != max_range_absolute else max_range  # 60
+        # [25.89, 60.5] min max
+        min_discount, max_discount = discounts[0], discounts[1]
+        # [25, 60] rounded min max
+        min_range_absolute, max_range_absolute = (
+            floor(min_discount),
+            floor(max_discount),
+        )
 
-		for discount in range(min_range, (max_range + 1), 10):
-			label = _("{0}% and below").format(discount)
-			discount_filters.append([discount, label])
+        min_range = int(min_discount - (min_range_absolute % 10))  # 20
+        max_range = int(max_discount - (max_range_absolute % 10))  # 60
 
-		return discount_filters
+        min_range = (
+            (min_range + 10) if min_range != min_range_absolute else min_range
+        )  # 30 (upper limit of 25.89 in range of 10)
+        max_range = (
+            (max_range + 10) if max_range != max_range_absolute else max_range
+        )  # 60
+
+        for discount in range(min_range, (max_range + 1), 10):
+            label = _("{0}% and below").format(discount)
+            discount_filters.append([discount, label])
+
+        return discount_filters

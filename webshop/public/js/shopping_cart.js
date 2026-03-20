@@ -160,7 +160,7 @@ $.extend(shopping_cart, {
 			btn: this,
 			callback: function(r) {
 				if(!r.exc) {
-					$(".cart-items").html(r.message.items);
+					$(".cart-items-list, .cart-items").html(r.message.items);
 					$(".cart-tax-items").html(r.message.total);
 					$(".payment-summary").html(r.message.taxes_and_totals);
 					shopping_cart.set_cart_count();

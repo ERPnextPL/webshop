@@ -297,12 +297,13 @@
 {% for field_filter in filters %}
 	{%- set item_field =  field_filter[0] %}
 	{%- set values =  field_filter[1] %}
+	{%- set filter_label = _('Category') if item_field.fieldname == 'item_group' else _(item_field.label) %}
 	<div class="mb-4 filter-block pb-5">
-		<div class="filter-label mb-3">{{ _(item_field.label) }}</div>
+		<div class="filter-label mb-3">{{ filter_label }}</div>
 
 		{% if values | len > 20 %}
 		<!-- show inline filter if values more than 20 -->
-		<input type="text" class="form-control form-control-sm mb-2 filter-lookup-input" placeholder="_('Search') {{ _(item_field.label) + 's' }}"/>
+		<input type="text" class="form-control form-control-sm mb-2 filter-lookup-input" placeholder="{{ _('Search') }} {{ filter_label }}"/>
 		{% endif %}
 
 		{% if values %}

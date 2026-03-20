@@ -6,7 +6,7 @@ from webshop.webshop.doctype.webshop_settings.test_webshop_settings import (
 	setup_webshop_settings,
 )
 from webshop.webshop.doctype.website_item.website_item import make_website_item
-from webshop.webshop.variant_selector.utils import get_next_attribute_and_values
+from webshop.webshop.variant_selector.utils import get_next_attribute_and_values, get_variant_rows
 from erpnext.stock.doctype.item.test_item import make_item
 
 test_dependencies = ["Item"]
@@ -123,3 +123,14 @@ class TestVariantSelector(FrappeTestCase):
 		self.assertEqual(next_values["exact_match"][0], "Test-Tshirt-Temp-S-R")
 		self.assertEqual(price_info["price_list_rate"], 100.0)
 		self.assertEqual(price_info["formatted_price_sales_uom"], "₹ 100.00")
+
+	def test_b2b_rows_support_multiselect_filters(self):
+		rows = get_variant_rows(
+			"Test-Tshirt-Temp",
+			selected_filters={"Test Size": ["Small", "Medium"], "Test Colour": ["Red"]},
+		)["rows"]
+
+		self.assertEqual(
+			[row["item_code"] for row in rows],
+			["Test-Tshirt-Temp-S-R", "Test-Tshirt-Temp-M-R"],
+		)
