@@ -43,7 +43,7 @@
 	{% endif %}
 
 	<!-- Specifications Section -->
-	{% if website_specifications %}
+	{% if website_specifications and not (show_tabs and tabs) %}
 	<div class="product-section-card">
 		<div class="product-section-heading product-section-toggle" data-target="product-specifications-body">
 			<div class="product-section-heading-left">

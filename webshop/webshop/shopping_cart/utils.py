@@ -56,7 +56,7 @@ def get_website_messages():
 	lang = frappe.local.lang or "en"
 	cache_key = f"webshop_website_messages::{lang}"
 	cached = frappe.cache().get_value(cache_key)
-	if cached:
+	if cached is not None:
 		return cached
 
 	messages = {}
