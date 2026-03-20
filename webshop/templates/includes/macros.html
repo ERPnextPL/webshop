@@ -331,11 +331,12 @@
 
 {%- macro attribute_filter_section(filters)-%}
 {% for attribute in filters %}
+	{%- set attribute_label = attribute.name %}
 	<div class="mb-4 filter-block pb-5">
-		<div class="filter-label mb-3">{{ _(attribute.name) }}</div>
+		<div class="filter-label mb-3">{{ attribute_label }}</div>
 		{% if attribute.item_attribute_values | len > 20 %}
 		<!-- show inline filter if values more than 20 -->
-		<input type="text" class="form-control form-control-sm mb-2 filter-lookup-input" placeholder="_('Search') {{ _(attribute.name) + 's' }}"/>
+		<input type="text" class="form-control form-control-sm mb-2 filter-lookup-input" placeholder="{{ _('Search') }} {{ attribute_label }}"/>
 		{% endif %}
 
 		{% if attribute.item_attribute_values %}
@@ -350,7 +351,7 @@
 						data-attribute-value="{{ attr_value }}"
 						style="width: 14px !important"
 						{% if attr_value.checked %} checked {% endif %}>
-						<span class="label-area">{{ _(attr_value) }}</span>
+						<span class="label-area">{{ attr_value }}</span>
 				</label>
 			</div>
 			{% endfor %}
