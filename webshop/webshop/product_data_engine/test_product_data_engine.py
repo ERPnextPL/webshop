@@ -115,6 +115,18 @@ class TestProductDataEngine(unittest.TestCase):
             "Website Item", {"item_code": item_code}, "ranking", old_ranking
         )
 
+    def test_search_term_applies_like_or_filters(self):
+        engine = ProductQuery()
+        result = engine.query(
+            attributes={}, fields={}, search_term="12I", start=0, item_group=None
+        )
+        items = result.get("items")
+        item_codes = [item.get("item_code") for item in items]
+
+        self.assertEqual(len(items), 1)
+        self.assertEqual(result.get("items_count"), 1)
+        self.assertIn("Test 12I Laptop", item_codes)
+
     def test_product_list_field_filter_builder(self):
         "Test if field filters are fetched correctly."
         frappe.db.set_value("Item Group", "Raw Material", "show_in_website", 0)

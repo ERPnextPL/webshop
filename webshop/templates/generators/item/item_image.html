@@ -1,37 +1,39 @@
 {% set column_size = 5 %}
 <div class="col-md-{{ column_size }} product-media-column">
 	{% set gallery_images = gallery_images or [] %}
+	{% set fallback_image = doc.website_image or doc.thumbnail or "https://zetkameble.pl/wp-content/uploads/2025/03/349a1c58dd610ece9883ec97716747eb-300x160.png" %}
+	{% set display_images = gallery_images if gallery_images else [{"image": fallback_image, "heading": doc.website_image_alt or doc.item_name}] %}
 
-	{% if gallery_images %}
-		<div class="item-gallery-shell" data-gallery-size="{{ gallery_images | length }}">
+	{% if display_images %}
+		<div class="item-gallery-shell" data-gallery-size="{{ display_images | length }}">
 			<div class="item-gallery-stage">
 				<div class="item-gallery-stage-frame">
 					<img
 						itemprop="image"
 						class="product-gallery-stage-image website-image"
-						src="{{ frappe.utils.quoted(gallery_images[0].image) | abs_url }}"
-						alt="{{ _(gallery_images[0].heading or doc.item_name) }}"
+						src="{{ frappe.utils.quoted(display_images[0].image) | abs_url }}"
+						alt="{{ _(display_images[0].heading or doc.item_name) }}"
 					>
 				</div>
 			</div>
 
 			<div class="item-gallery-footer">
-				<div class="item-gallery-nav {% if gallery_images | length < 2 %}item-gallery-nav--single{% endif %}">
-					<button type="button" class="item-gallery-nav-btn item-gallery-prev" aria-label="{{ _('Previous image') }}" {% if gallery_images | length < 2 %}disabled{% endif %}>
+				<div class="item-gallery-nav {% if display_images | length < 2 %}item-gallery-nav--single{% endif %}">
+					<button type="button" class="item-gallery-nav-btn item-gallery-prev" aria-label="{{ _('Previous image') }}" {% if display_images | length < 2 %}disabled{% endif %}>
 						<svg viewBox="0 0 15 15" aria-hidden="true" focusable="false">
 							<path d="M1.944 7.5h11.112M5.722 11.278 1.944 7.5l3.778-3.778"></path>
 						</svg>
 					</button>
-					<button type="button" class="item-gallery-nav-btn item-gallery-next" aria-label="{{ _('Next image') }}" {% if gallery_images | length < 2 %}disabled{% endif %}>
+					<button type="button" class="item-gallery-nav-btn item-gallery-next" aria-label="{{ _('Next image') }}" {% if display_images | length < 2 %}disabled{% endif %}>
 						<svg viewBox="0 0 15 15" aria-hidden="true" focusable="false">
 							<path d="M13.056 7.5H1.944M9.278 3.722 13.056 7.5l-3.778 3.778"></path>
 						</svg>
 					</button>
 				</div>
 
-				{% if gallery_images | length > 1 %}
+				{% if display_images | length > 1 %}
 					<div class="item-gallery-thumbs" role="tablist" aria-label="{{ _('Product images') }}">
-						{% for item in gallery_images %}
+						{% for item in display_images %}
 							<button
 								type="button"
 								class="item-gallery-thumb {% if loop.first %}active{% endif %}"

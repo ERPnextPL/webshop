@@ -132,13 +132,14 @@ webshop.ProductView =  class {
 
 	get_query_filters() {
 		const filters = frappe.utils.get_query_params();
-		let {field_filters} = filters;
+		let {field_filters, attribute_filters} = filters;
 
 		field_filters = field_filters ? JSON.parse(field_filters) : {};
+		attribute_filters = attribute_filters ? JSON.parse(attribute_filters) : {};
 
 		return {
 			field_filters: field_filters,
-			attribute_filters: {},
+			attribute_filters: attribute_filters,
 			item_group: this.item_group,
 			start: filters.start || null,
 			from_filters: this.from_filters || false
@@ -365,6 +366,7 @@ webshop.ProductView =  class {
 	bind_filters() {
 		let me = this;
 		this.field_filters = {};
+		this.attribute_filters = {};
 
 		$('.product-filter').on('change', (e) => {
 			me.from_filters = true;
@@ -372,7 +374,24 @@ webshop.ProductView =  class {
 			const $checkbox = $(e.target);
 			const is_checked = $checkbox.is(':checked');
 
-			if ($checkbox.is('.field-filter') || $checkbox.is('.discount-filter')) {
+			if ($checkbox.is('.attribute-filter')) {
+				const {
+					attributeName: attribute_name,
+					attributeValue: attribute_value
+				} = $checkbox.data();
+
+				if (is_checked) {
+					this.attribute_filters[attribute_name] = this.attribute_filters[attribute_name] || [];
+					this.attribute_filters[attribute_name].push(attribute_value);
+				} else {
+					this.attribute_filters[attribute_name] = this.attribute_filters[attribute_name] || [];
+					this.attribute_filters[attribute_name] = this.attribute_filters[attribute_name].filter(v => v !== attribute_value);
+				}
+
+				if (this.attribute_filters[attribute_name].length === 0) {
+					delete this.attribute_filters[attribute_name];
+				}
+			} else if ($checkbox.is('.field-filter') || $checkbox.is('.discount-filter')) {
 				const {
 					filterName: filter_name,
 					filterValue: filter_value
@@ -428,6 +447,7 @@ webshop.ProductView =  class {
 		const query_string = this.get_query_string({
 			start: start,
 			field_filters: JSON.stringify(this.if_key_exists(this.field_filters)),
+			attribute_filters: JSON.stringify(this.if_key_exists(this.attribute_filters)),
 		});
 		window.history.pushState('filters', '', `${location.pathname}?` + query_string);
 
@@ -439,7 +459,7 @@ webshop.ProductView =  class {
 
 	restore_filters_state() {
 		const filters = frappe.utils.get_query_params();
-		let {field_filters} = filters;
+		let {field_filters, attribute_filters} = filters;
 
 		if (field_filters) {
 			field_filters = JSON.parse(field_filters);
@@ -451,6 +471,17 @@ webshop.ProductView =  class {
 				$(selector).prop('checked', true);
 			}
 			this.field_filters = field_filters;
+		}
+		if (attribute_filters) {
+			attribute_filters = JSON.parse(attribute_filters);
+			for (let attribute in attribute_filters) {
+				const values = attribute_filters[attribute];
+				const selector = values.map(value => {
+					return `input[data-attribute-name="${attribute}"][data-attribute-value="${value}"]`;
+				}).join(',');
+				$(selector).prop('checked', true);
+			}
+			this.attribute_filters = attribute_filters;
 		}
 	}
 

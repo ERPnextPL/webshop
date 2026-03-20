@@ -104,6 +104,7 @@ class ProductQuery:
         wi = frappe.qb.DocType("Website Item")
         item = frappe.qb.DocType("Item")
         template_item = frappe.qb.DocType("Item").as_("template_item")
+        joined_tables = {}
 
         # Base query with join to Item
         query = (
@@ -113,6 +114,7 @@ class ProductQuery:
             .left_join(template_item)
             .on((item.variant_of.isnotnull()) & (item.variant_of == template_item.name))
             .select(*[getattr(wi, field) for field in self.fields])
+            .distinct()
             .where(
                 (wi.published == 1)
                 & (item.is_sales_item == 1)
@@ -122,35 +124,39 @@ class ProductQuery:
 
         # Add additional filters
         for filter_item in self.filters:
+            parsed_filter = self.parse_filter_item(filter_item)
+            if not parsed_filter:
+                continue
+
+            doctype_name, field, op, value = parsed_filter
             if (
-                filter_item[0] == "published"
-                and filter_item[1] == "="
-                and filter_item[2] == 1
+                doctype_name == "Website Item"
+                and field == "published"
+                and op == "="
+                and value == 1
             ):
                 continue  # already added
-            # Add other filters
-            field, op, value = filter_item
-            if hasattr(wi, field):
-                if op == "=":
-                    query = query.where(getattr(wi, field) == value)
-                elif op == "in":
-                    query = query.where(getattr(wi, field).isin(value))
-                elif op == "is":
-                    if value == "not set":
-                        query = query.where(getattr(wi, field).isnull())
-                    else:
-                        query = query.where(getattr(wi, field).isnotnull())
+
+            query, table = self.get_filter_table(query, joined_tables, wi, item, doctype_name)
+            condition = self.build_filter_condition(table, field, op, value)
+            if condition is not None:
+                query = query.where(condition)
 
         # Add or_filters if any
         if self.or_filters:
             or_conditions = []
             for or_filter in self.or_filters:
-                field, op, value = or_filter
-                if hasattr(wi, field):
-                    if op == "=":
-                        or_conditions.append(getattr(wi, field) == value)
-                    elif op == "in":
-                        or_conditions.append(getattr(wi, field).isin(value))
+                parsed_filter = self.parse_filter_item(or_filter)
+                if not parsed_filter:
+                    continue
+
+                doctype_name, field, op, value = parsed_filter
+                query, table = self.get_filter_table(
+                    query, joined_tables, wi, item, doctype_name
+                )
+                condition = self.build_filter_condition(table, field, op, value)
+                if condition is not None:
+                    or_conditions.append(condition)
             if or_conditions:
                 query = query.where(frappe.qb.or_(*or_conditions))
 
@@ -168,6 +174,61 @@ class ProductQuery:
         items = query.limit(page_length).offset(start).run(as_dict=True)
 
         return items, count
+
+    def parse_filter_item(self, filter_item):
+        if len(filter_item) == 3:
+            field, op, value = filter_item
+            return "Website Item", field, str(op).lower(), value
+
+        if len(filter_item) == 4:
+            doctype_name, field, op, value = filter_item
+            return doctype_name, field, str(op).lower(), value
+
+        return None
+
+    def get_filter_table(self, query, joined_tables, wi, item, doctype_name):
+        if doctype_name == "Website Item":
+            return query, wi
+
+        if doctype_name == "Item":
+            return query, item
+
+        if doctype_name in joined_tables:
+            return query, joined_tables[doctype_name]
+
+        meta = frappe.get_meta(doctype_name, cached=True)
+        if not meta.has_field("parent"):
+            return query, None
+
+        table_alias = doctype_name.lower().replace(" ", "_")
+        table = frappe.qb.DocType(doctype_name).as_(table_alias)
+        join_condition = table.parent == wi.name
+
+        if meta.has_field("parenttype"):
+            join_condition = join_condition & (table.parenttype == "Website Item")
+
+        query = query.left_join(table).on(join_condition)
+        joined_tables[doctype_name] = table
+
+        return query, table
+
+    def build_filter_condition(self, table, field, op, value):
+        if not table or not hasattr(table, field):
+            return None
+
+        column = getattr(table, field)
+
+        if op == "=":
+            return column == value
+        if op == "in":
+            values = value if isinstance(value, (list, tuple, set)) else [value]
+            return column.isin(values)
+        if op == "like":
+            return column.like(value)
+        if op == "is":
+            return column.isnull() if value == "not set" else column.isnotnull()
+
+        return None
 
     def query_items_with_attributes(self, attributes, start=0):
         """Build a query to fetch Website Items based on field & attribute filters."""

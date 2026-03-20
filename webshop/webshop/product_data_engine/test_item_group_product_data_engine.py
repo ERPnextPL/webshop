@@ -7,6 +7,7 @@ import frappe
 
 from webshop.webshop.api import get_product_filter_data
 from webshop.webshop.doctype.website_item.test_website_item import create_regular_web_item
+from webshop.webshop.product_data_engine.query import ProductQuery
 
 test_dependencies = ["Item", "Item Group"]
 
@@ -94,6 +95,20 @@ class TestItemGroupProductDataEngine(unittest.TestCase):
 
 		self.assertEqual(len(items), 1)
 		self.assertEqual(items[0].get("item_code"), "Test Mobile E")  # visible in own item group
+
+	def test_query_items_handles_four_part_child_table_filters(self):
+		website_item = frappe.get_doc("Website Item", {"item_code": "Test Mobile E"})
+		website_item.append("website_item_groups", {"item_group": "_Test Item Group B - 1"})
+		website_item.save()
+
+		engine = ProductQuery()
+		engine.filters.append(["Website Item Group", "item_group", "=", "_Test Item Group B - 1"])
+
+		items, count = engine.query_items(start=0)
+		item_codes = [item.get("item_code") for item in items]
+
+		self.assertGreaterEqual(count, 1)
+		self.assertIn("Test Mobile E", item_codes)
 
 	def test_item_group_with_sub_groups(self):
 		"Test Valid Sub Item Groups in Item Group Page."

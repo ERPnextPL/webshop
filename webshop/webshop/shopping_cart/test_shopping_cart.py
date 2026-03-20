@@ -17,6 +17,7 @@ from webshop.webshop.shopping_cart.cart import (
 	request_for_quotation,
 	update_cart,
 )
+from webshop.webshop.shopping_cart.product_info import get_product_info_for_website
 from erpnext.tests.utils import create_test_contact_and_address
 
 
@@ -229,6 +230,20 @@ class TestShoppingCart(unittest.TestCase):
 		quote_doctstatus = cint(frappe.db.get_value("Quotation", quote_name, "docstatus"))
 
 		self.assertEqual(quote_doctstatus, 1)
+
+	def test_guest_product_info_does_not_crash_without_party(self):
+		frappe.set_user("Guest")
+
+		product_data = get_product_info_for_website("_Test Item")
+		product_info = product_data.get("product_info")
+		cart_quotation = _get_cart_quotation()
+
+		self.assertIsInstance(product_info, dict)
+		self.assertEqual(cart_quotation.get("items"), [])
+		self.assertEqual(cart_quotation.get("total_qty"), 0)
+		self.assertEqual(cart_quotation.get("selling_price_list"), "_Test Price List India")
+		self.assertFalse(cart_quotation.get("party_name"))
+		self.assertFalse(cart_quotation.get("name"))
 
 	def create_tax_rule(self):
 		tax_rule = frappe.get_test_records("Tax Rule")[0]

@@ -528,8 +528,9 @@ class VariantSelector {
 			(sum, row) => sum + Number(row.stock_qty || 0), 0
 		);
 		const hasAnyStock = this.rows.some((row) => Number(row.in_stock) === 1);
+		const hasLimitedStock = hasAnyStock && totalStock > 0;
 
-		if (hasAnyStock) {
+		if (hasLimitedStock) {
 			$indicator.html(
 				`<span class="variant-selector__stock-dot variant-selector__stock-dot--limited"></span> ${this.escapeHtml(
 					__("Limited quantity available ({0} in stock)", [totalStock])
@@ -538,7 +539,7 @@ class VariantSelector {
 		} else {
 			$indicator.html(
 				`<span class="variant-selector__stock-dot variant-selector__stock-dot--out"></span> ${this.escapeHtml(
-					__("Limited quantity available ({0} in stock)", [totalStock])
+					this.getUnavailableStockLabel()
 				)}`
 			);
 		}
@@ -563,6 +564,10 @@ class VariantSelector {
 			</div>
 			<div class="variant-selector__from-price-vat">${__("Excl. VAT")}</div>
 		`);
+	}
+
+	getUnavailableStockLabel() {
+		return this.mode === "b2b" ? __("Made to order") : __("Out of stock");
 	}
 
 	getB2BPlaceholder() {
@@ -713,7 +718,7 @@ class VariantSelector {
 		}
 
 		if (Number(productInfo.in_stock) === 0 && Number(productInfo.stock_qty || 0) <= 0) {
-			return __("Out of stock");
+			return this.getUnavailableStockLabel();
 		}
 
 		if (Number(productInfo.in_stock) === 1) {

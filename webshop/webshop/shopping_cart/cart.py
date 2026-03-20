@@ -364,6 +364,9 @@ def _get_cart_quotation(party=None):
     if not party:
         party = get_party()
 
+    if not party:
+        return get_guest_cart_quotation()
+
     quotation = frappe.get_all(
         "Quotation",
         fields=["name"],
@@ -406,6 +409,27 @@ def _get_cart_quotation(party=None):
         apply_cart_settings(party, qdoc)
 
     return qdoc
+
+
+def get_guest_cart_quotation():
+    cart_settings = frappe.get_cached_doc("Webshop Settings")
+    company = frappe.db.get_single_value("Webshop Settings", "company")
+    quotation = frappe._dict(
+        {
+            "doctype": "Quotation",
+            "company": company,
+            "order_type": "Shopping Cart",
+            "status": "Draft",
+            "docstatus": 0,
+            "items": [],
+            "total_qty": 0,
+            "total": 0,
+            "net_total": 0,
+            "grand_total": 0,
+        }
+    )
+    quotation.selling_price_list = _set_price_list(cart_settings, quotation)
+    return quotation
 
 
 def update_party(fullname, company_name=None, mobile_no=None, phone=None):
@@ -776,6 +800,9 @@ def show_terms(doc):
 
 @frappe.whitelist(allow_guest=True)
 def apply_coupon_code(applied_code, applied_referral_sales_partner):
+    if frappe.session.user == "Guest":
+        frappe.throw(_("Please log in to apply a coupon code"))
+
     quotation = True
 
     if not applied_code:
@@ -858,6 +885,9 @@ def empty_cart():
 
 @frappe.whitelist(allow_guest=True)
 def remove_coupon_code():
+    if frappe.session.user == "Guest":
+        frappe.throw(_("Please log in to remove a coupon code"))
+
     quotation = _get_cart_quotation()
     quotation.coupon_code = ""
     quotation.referral_sales_partner = ""

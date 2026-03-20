@@ -35,6 +35,7 @@
 "Enter coupon code","Wprowadź kod kuponu",""
 "Empty Cart","Wyczyść koszyk",""
 "Export Cart","Eksportuj koszyk",""
+"Export Cart (.csv)","Eksportuj koszyk (.csv)",""
 "Excl. VAT","Bez VAT",""
 "FREE","GRATIS",""
 "Filter Fields Row #{0}: Fieldname {1} must be of type 'Link' or 'Table MultiSelect'","Filtr pól, wiersz nr {0}: nazwa pola {1} musi być typu 'Link' lub 'Table MultiSelect'",""
