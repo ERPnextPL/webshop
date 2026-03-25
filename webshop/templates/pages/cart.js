@@ -31,6 +31,24 @@ $.extend(shopping_cart, {
 		return qty;
 	},
 
+	set_item_controls_disabled: function($card, disabled) {
+		if (!$card || !$card.length) return;
+
+		$card.toggleClass("cart-item-updating", disabled);
+		$card.find(".qty-btn, .cart-qty, .remove-cart-item").prop("disabled", disabled);
+	},
+
+	set_cart_actions_disabled: function(disabled) {
+		$(".cart-action-buttons")
+			.find(".btn, button, a")
+			.toggleClass("disabled", disabled)
+			.attr("aria-disabled", disabled ? "true" : "false");
+
+		$(".cart-action-buttons")
+			.find("button, .btn-place-order, .btn-request-for-quotation, .btn-export-csv, .btn-empty-cart")
+			.prop("disabled", disabled);
+	},
+
 	bind_events: function() {
 		shopping_cart.bind_place_order();
 		shopping_cart.bind_request_quotation();
@@ -46,24 +64,28 @@ $.extend(shopping_cart, {
 
 	bind_place_order: function() {
 		$(".btn-place-order").on("click", function() {
+			if ($(this).hasClass("disabled") || $(this).prop("disabled")) return;
 			shopping_cart.place_order(this);
 		});
 	},
 
 	bind_request_quotation: function() {
 		$('.btn-request-for-quotation').on('click', function() {
+			if ($(this).hasClass("disabled") || $(this).prop("disabled")) return;
 			shopping_cart.request_quotation(this);
 		});
 	},
 
 	bind_export_csv: function() {
 		$('.btn-export-csv').on('click', function() {
+			if ($(this).hasClass("disabled") || $(this).prop("disabled")) return;
 			shopping_cart.export_csv(this);
 		});
 	},
 
 	bind_empty_cart: function() {
 		$('.btn-empty-cart').on('click', function() {
+			if ($(this).hasClass("disabled") || $(this).prop("disabled")) return;
 			shopping_cart.empty_cart(this);
 		});
 	},
@@ -72,14 +94,16 @@ $.extend(shopping_cart, {
 		// bind update on input change
 		$(".cart-items-list").on("change", ".cart-qty", function() {
 			const $input = $(this);
+			const $card = $input.closest(".cart-item-card");
 			var item_code = $input.attr("data-item-code");
 			var newVal = shopping_cart.normalize_qty($input);
-			shopping_cart.shopping_cart_update({item_code, qty: newVal});
+			shopping_cart.shopping_cart_update({item_code, qty: newVal, $card});
 		});
 
 		// bind qty buttons
 		$(".cart-items-list").on('click', '.qty-btn', function () {
 			var btn = $(this),
+				card = btn.closest('.cart-item-card'),
 				adjuster = btn.closest('.qty-adjuster'),
 				input = adjuster.find('.qty-input'),
 				oldValue = input.val().trim(),
@@ -99,7 +123,8 @@ $.extend(shopping_cart, {
 			var item_code = input.attr("data-item-code");
 			shopping_cart.shopping_cart_update({
 				item_code,
-				qty: newVal
+				qty: newVal,
+				$card: card
 			});
 		});
 	},
@@ -114,7 +139,8 @@ $.extend(shopping_cart, {
 			shopping_cart.shopping_cart_update({
 				item_code,
 				qty,
-				additional_notes: notes
+				additional_notes: notes,
+				$card
 			});
 		});
 	},
@@ -141,8 +167,43 @@ $.extend(shopping_cart, {
 
 			shopping_cart.shopping_cart_update({
 				item_code: item_code,
-				qty: 0
+				qty: 0,
+				$card: $remove_btn.closest(".cart-item-card")
 			});
+		});
+	},
+
+	shopping_cart_update: function({item_code, qty, cart_dropdown, additional_notes, $card}) {
+		if ($card && $card.length) {
+			shopping_cart.set_item_controls_disabled($card, true);
+		}
+		shopping_cart.set_cart_actions_disabled(true);
+
+		shopping_cart.update_cart({
+			item_code,
+			qty,
+			additional_notes,
+			with_items: 1,
+			freeze: false,
+			btn: this,
+			always: function() {
+				if ($card && $card.length) {
+					shopping_cart.set_item_controls_disabled($card, false);
+				}
+				shopping_cart.set_cart_actions_disabled(false);
+			},
+			callback: function(r) {
+				if(!r.exc) {
+					$(".cart-items-list, .cart-items").html(r.message.items);
+					$(".cart-tax-items").html(r.message.total);
+					$(".payment-summary").html(r.message.taxes_and_totals);
+					shopping_cart.set_cart_count();
+
+					if (cart_dropdown != true) {
+						$(".cart-icon").hide();
+					}
+				}
+			},
 		});
 	},
 
@@ -200,9 +261,11 @@ $.extend(shopping_cart, {
 			type: "POST",
 			method: "webshop.webshop.shopping_cart.cart.place_order",
 			btn: btn,
+			always: function() {
+				shopping_cart.unfreeze();
+			},
 			callback: function(r) {
 				if(r.exc) {
-					shopping_cart.unfreeze();
 					var msg = "";
 					if(r._server_messages) {
 						msg = JSON.parse(r._server_messages || []).join("<br>");
@@ -227,9 +290,11 @@ $.extend(shopping_cart, {
 			type: "POST",
 			method: "webshop.webshop.shopping_cart.cart.request_for_quotation",
 			btn: btn,
+			always: function() {
+				shopping_cart.unfreeze();
+			},
 			callback: function(r) {
 				if(r.exc) {
-					shopping_cart.unfreeze();
 					var msg = "";
 					if(r._server_messages) {
 						msg = JSON.parse(r._server_messages || []).join("<br>");
@@ -254,8 +319,10 @@ $.extend(shopping_cart, {
 			type: "POST",
 			method: "webshop.webshop.shopping_cart.cart.export_cart_csv",
 			btn: btn,
-			callback: function(r) {
+			always: function() {
 				shopping_cart.unfreeze();
+			},
+			callback: function(r) {
 				if(!r.exc && r.message) {
 					// Trigger download
 					var link = document.createElement('a');
@@ -289,8 +356,10 @@ $.extend(shopping_cart, {
 			type: "POST",
 			method: "webshop.webshop.shopping_cart.cart.empty_cart",
 			btn: btn,
-			callback: function(r) {
+			always: function() {
 				shopping_cart.unfreeze();
+			},
+			callback: function(r) {
 				if(!r.exc) {
 					window.location.href = '/cart';
 				} else {

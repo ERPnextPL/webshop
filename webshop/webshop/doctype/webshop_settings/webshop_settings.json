@@ -36,6 +36,7 @@
   "checkout_settings_section",
   "enable_checkout",
   "show_price_in_quotation",
+  "allow_checkout_without_payment",
   "column_break_27",
   "save_quotations_as_draft",
   "payment_gateway_account",
@@ -232,6 +233,14 @@
    "label": "Enable Checkout"
   },
   {
+   "default": "0",
+   "depends_on": "enable_checkout",
+   "description": "Allow creating a Sales Order from the cart without configuring a Payment Gateway Account.",
+   "fieldname": "allow_checkout_without_payment",
+   "fieldtype": "Check",
+   "label": "Allow Checkout Without Payment"
+  },
+  {
    "default": "Orders",
    "depends_on": "enable_checkout",
    "description": "After payment completion redirect user to selected page.",
@@ -253,11 +262,11 @@
    "label": "Save Quotations as Draft"
   },
   {
-   "depends_on": "enable_checkout",
+   "depends_on": "eval: doc.enable_checkout && !doc.allow_checkout_without_payment",
    "fieldname": "payment_gateway_account",
    "fieldtype": "Link",
    "label": "Payment Gateway Account",
-   "mandatory_depends_on": "enable_checkout",
+   "mandatory_depends_on": "eval: doc.enable_checkout && !doc.allow_checkout_without_payment",
    "options": "Payment Gateway Account"
   },
   {
