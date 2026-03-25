@@ -213,6 +213,7 @@
 "Checkout Settings","Ustawienia checkoutu",""
 "Enable Checkout","Włącz checkout",""
 "Allow Checkout Without Payment","Zezwól na finalizację zamówienia bez płatności",""
+"No topper","Bez topera",""
 "Allow creating a Sales Order from the cart without configuring a Payment Gateway Account.","Zezwól na utworzenie zamówienia sprzedaży z koszyka bez konfigurowania konta bramki płatności.",""
 "Show Request Quote Button","Pokaż przycisk „Poproś o wycenę”",""
 "Payment Success Url","Strona po udanej płatności",""

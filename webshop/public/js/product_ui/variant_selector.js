@@ -2,6 +2,7 @@ frappe.provide("webshop.product_ui");
 
 class VariantSelector {
 	constructor(wrapper) {
+		this.emptyOptionValue = "__EMPTY_VARIANT_VALUE__";
 		this.$root = $(wrapper);
 		this.itemCode = this.$root.data("item-code");
 		this.itemName = this.$root.data("item-name");
@@ -78,7 +79,12 @@ class VariantSelector {
 
 	getB2CFieldHtml(attribute) {
 		const options = attribute.values
-			.map((value) => `<option value="${this.escapeHtml(value)}">${this.escapeHtml(value)}</option>`)
+			.map((value) => {
+				const optionValue = this.toOptionValue(value);
+				return `<option value="${this.escapeHtml(optionValue)}">${this.escapeHtml(
+					this.getAttributeDisplayValue(attribute.attribute, value)
+				)}</option>`;
+			})
 			.join("");
 
 		return `
@@ -98,9 +104,9 @@ class VariantSelector {
 		const selected = {};
 		this.$root.find(".variant-selector__select").each((_, select) => {
 			const $select = $(select);
-			const value = $select.val();
-			if (value) {
-				selected[$select.data("attribute")] = value;
+			const rawValue = $select.val();
+			if (rawValue !== "") {
+				selected[$select.data("attribute")] = this.fromOptionValue(rawValue);
 			}
 		});
 
@@ -134,13 +140,16 @@ class VariantSelector {
 	resetB2COptions() {
 		this.config.attributes.forEach((attribute) => {
 			const $select = this.getAttributeSelect(attribute.attribute, ".variant-selector__select");
-			const selectedValue = $select.val();
+			const selectedValue = this.fromOptionValue($select.val());
 			$select.html(`
 				<option value="">${__("Choose {0}", [attribute.attribute])}</option>
 				${attribute.values
 					.map((value) => {
+						const optionValue = this.toOptionValue(value);
 						const selected = value === selectedValue ? "selected" : "";
-						return `<option value="${this.escapeHtml(value)}" ${selected}>${this.escapeHtml(value)}</option>`;
+						return `<option value="${this.escapeHtml(optionValue)}" ${selected}>${this.escapeHtml(
+							this.getAttributeDisplayValue(attribute.attribute, value)
+						)}</option>`;
 					})
 					.join("")}
 			`);
@@ -151,15 +160,16 @@ class VariantSelector {
 		this.config.attributes.forEach((attribute) => {
 			const validOptions = validOptionsMap[attribute.attribute] || attribute.values;
 			const $select = this.getAttributeSelect(attribute.attribute, ".variant-selector__select");
-			const currentValue = $select.val();
+			const currentValue = this.fromOptionValue($select.val());
 			let hasCurrentValue = false;
 
 			$select.find("option").each((_, option) => {
 				const $option = $(option);
-				const value = $option.attr("value");
-				if (!value) {
+				const rawValue = $option.attr("value");
+				if (rawValue === "") {
 					return;
 				}
+				const value = this.fromOptionValue(rawValue);
 
 				const isValid = validOptions.includes(value);
 				$option.prop("disabled", !isValid);
@@ -190,7 +200,7 @@ class VariantSelector {
 
 		if (!singleMatch) {
 			$status.html(`
-				<div class="variant-selector__summary">
+				<div class="variant-selector__summary variant-selector__summary--with-gap">
 					<span>${this.escapeHtml(
 						response.filtered_items_count === 1
 							? __("{0} item found.", [response.filtered_items_count])
@@ -265,8 +275,8 @@ class VariantSelector {
 											<input type="checkbox"
 												class="variant-selector__primary-filter"
 												data-attribute="${this.escapeHtml(attributeName)}"
-												value="${this.escapeHtml(value)}">
-											<span>${this.escapeHtml(value)}</span>
+												value="${this.escapeHtml(this.toOptionValue(value))}">
+											<span>${this.escapeHtml(this.getAttributeDisplayValue(attributeName, value))}</span>
 										</label>
 									`
 								)
@@ -349,9 +359,9 @@ class VariantSelector {
 			const $field = $(field);
 			const values = $field
 				.find(".variant-selector__primary-filter:checked")
-				.map((__, input) => $(input).val())
+				.map((__, input) => this.fromOptionValue($(input).val()))
 				.get()
-				.filter(Boolean);
+				.filter((value) => value !== null && value !== undefined);
 			if (values.length) {
 				selected[$field.data("attribute")] = values;
 			}
@@ -430,7 +440,12 @@ class VariantSelector {
 					.map(
 						(attributeName) =>
 							`<td class="variant-selector__matrix-cell">${this.escapeHtml(
-								this.formatAttributeValue(attributeName, row.secondary_attributes?.[attributeName] || "—")
+								this.formatAttributeValue(
+									attributeName,
+									Object.prototype.hasOwnProperty.call(row.secondary_attributes || {}, attributeName)
+										? row.secondary_attributes[attributeName]
+										: "—"
+								)
 							)}</td>`
 					)
 					.join("");
@@ -781,7 +796,10 @@ class VariantSelector {
 
 		const selectedValues = $field
 			.find(".variant-selector__primary-filter:checked")
-			.map((_, input) => $(input).val())
+			.map((_, input) => {
+				const value = this.fromOptionValue($(input).val());
+				return this.getAttributeDisplayValue(attributeName, value);
+			})
 			.get();
 		const $text = $field.find(".variant-selector__primary-trigger-text");
 
@@ -843,6 +861,9 @@ class VariantSelector {
 
 	formatAttributeValue(attributeName, value) {
 		if (value === "—") return value;
+		if (value === "") {
+			return this.getEmptyAttributeLabel(attributeName) || "—";
+		}
 		if (attributeName === "Stelaż" || attributeName === "Materac") {
 			let prefix = attributeName + " ";
 			if (value.startsWith(prefix)) {
@@ -851,6 +872,48 @@ class VariantSelector {
 			value = value.charAt(0).toUpperCase() + value.slice(1);
 		}
 		return value;
+	}
+
+	toOptionValue(value) {
+		return value === "" ? this.emptyOptionValue : value;
+	}
+
+	fromOptionValue(value) {
+		if (value === this.emptyOptionValue) {
+			return "";
+		}
+		if (value === undefined || value === null) {
+			return value;
+		}
+		return value;
+	}
+
+	getAttributeDisplayValue(attributeName, value) {
+		if (value === "") {
+			return this.getEmptyAttributeLabel(attributeName) || "—";
+		}
+		return value;
+	}
+
+	getEmptyAttributeLabel(attributeName) {
+		const normalized = this.normalizeAttributeName(attributeName);
+		if (normalized === "toper" || normalized === "topper") {
+			if (this.getCurrentLanguage().startsWith("pl")) {
+				return "Bez topera";
+			}
+			return __("No topper");
+		}
+		return "";
+	}
+
+	getCurrentLanguage() {
+		const bootLanguage = frappe?.boot?.lang;
+		const htmlLanguage = document?.documentElement?.lang;
+		const browserLanguage = navigator?.language;
+
+		return `${bootLanguage || htmlLanguage || browserLanguage || "en"}`
+			.trim()
+			.toLowerCase();
 	}
 
 	escapeHtml(value) {

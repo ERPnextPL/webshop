@@ -1199,6 +1199,10 @@ body.product-page {
 			background: #f9fafb;
 		}
 
+		.variant-selector__summary--with-gap {
+			margin-bottom: 0.75rem;
+		}
+
 		.variant-selector__summary--selected {
 			background: #f3f4f6;
 			border-color: #d1d5db;
@@ -1232,11 +1236,12 @@ body.product-page {
 			text-decoration: underline;
 		}
 
-		.variant-selector__add-single {
-			margin-top: 0.75rem;
-			width: 100%;
-			border-radius: var(--product-radius-md);
-		}
+			.variant-selector__add-single {
+				margin-top: 0.75rem;
+				margin-bottom: 0.75rem;
+				width: 100%;
+				border-radius: var(--product-radius-md);
+			}
 
 		.variant-selector__placeholder {
 			padding: 0.75rem 1rem;
