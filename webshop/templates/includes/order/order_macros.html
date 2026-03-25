@@ -6,11 +6,11 @@
 	{% set normalized_description = raw_description | replace("\\_", "_") %}
 	<div class="row item_name_and_description">
 		<div class="col-xs-4 col-sm-2 order-image-col">
-			<div class="order-image h-100">
+			<div class="order-image" style="width: 100%; aspect-ratio: 1 / 1; max-width: 100px;">
 				{% if d.thumbnail or d.image %}
 					{{ product_image(d.thumbnail or d.image, no_border=True) }}
 				{% else %}
-					<div class="no-image-cart-item" style="min-height: 100px;">
+					<div class="no-image-cart-item h-100 d-flex align-items-center justify-content-center">
 						{{ frappe.utils.get_abbr(d.item_name) or "NA" }}
 					</div>
 				{% endif %}

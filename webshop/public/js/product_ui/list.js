@@ -24,7 +24,7 @@ webshop.ProductList = class {
 			let title = item.web_item_name || item.item_name || item.item_code || "";
 			title =  title.length > 200 ? title.substr(0, 200) + "..." : title;
 
-			html += `<div class='row list-row w-100 mb-4'>`;
+			html += `<div class='list-row w-100 mb-4'>`;
 			html += me.get_image_html(item, title, me.settings);
 			html += me.get_row_body_html(item, title, me.settings);
 			html += `</div>`;
@@ -41,7 +41,7 @@ webshop.ProductList = class {
 
 		if (image) {
 			image_html += `
-				<div class="col-2 border text-center rounded list-image">
+				<div class="list-image">
 					<a class="product-link product-list-link" href="/${ item.route || '#' }">
 						<img itemprop="image" class="website-image h-100 w-100" alt="${ title }"
 							src="${ image }">
@@ -51,7 +51,7 @@ webshop.ProductList = class {
 			`;
 		} else {
 			image_html += `
-				<div class="col-2 border text-center rounded list-image">
+				<div class="list-image">
 					<a class="product-link product-list-link" href="/${ item.route || '#' }"
 						style="text-decoration: none">
 						<div class="card-img-top no-image-list">
@@ -67,7 +67,7 @@ webshop.ProductList = class {
 	}
 
 	get_row_body_html(item, title, settings) {
-		let body_html = `<div class='col-10 text-left'>`;
+		let body_html = `<div class='list-row-body text-left'>`;
 		body_html += this.get_title_html(item, title, settings);
 		body_html += this.get_item_details(item, settings);
 		body_html += `</div>`;
@@ -75,9 +75,9 @@ webshop.ProductList = class {
 	}
 
 	get_title_html(item, title, settings) {
-		let title_html = `<div style="display: flex; margin-left: -15px;">`;
+		let title_html = `<div class="list-row-header">`;
 		title_html += `
-			<div class="col-8" style="margin-right: -15px;">
+			<div class="list-row-title">
 				<a class="" href="/${ item.route || '#' }"
 					style="color: var(--gray-800); font-weight: 500;">
 					${ title }
@@ -86,7 +86,7 @@ webshop.ProductList = class {
 		`;
 
 		if (settings.enabled) {
-			title_html += `<div class="col-4 cart-action-container ${item.in_cart ? 'd-flex' : ''}">`;
+			title_html += `<div class="list-row-actions cart-action-container ${item.in_cart ? 'd-flex' : ''}">`;
 			title_html += this.get_primary_button(item, settings);
 			title_html += `</div>`;
 		}
@@ -97,13 +97,13 @@ webshop.ProductList = class {
 
 	get_item_details(item, settings) {
 		let details = `
-			<p class="product-code">
-				${ item.item_group } | ${ __('Item Code') } : ${ item.item_code }
+			<p class="product-code mb-1">
+				${ item.item_group || '' }${ item.item_group ? ' | ' : '' }${ __('Item Code') }: ${ item.item_code }
 			</p>
-			<div class="mt-2" style="color: var(--gray-600) !important; font-size: 13px;">
+			<div class="mt-2 list-row-description" style="color: var(--gray-600) !important; font-size: 13px;">
 				${ item.short_description || '' }
 			</div>
-			<div class="product-price" itemprop="offers" itemscope itemtype="https://schema.org/AggregateOffer">
+			<div class="product-price mt-3" itemprop="offers" itemscope itemtype="https://schema.org/AggregateOffer">
 				${ item.formatted_price || '' }
 		`;
 
