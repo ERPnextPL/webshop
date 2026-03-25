@@ -192,7 +192,6 @@
   },
   {
    "depends_on": "enabled",
-   "description": "Prices will not be shown if Price List is not set",
    "fieldname": "price_list",
    "fieldtype": "Link",
    "label": "Price List",
