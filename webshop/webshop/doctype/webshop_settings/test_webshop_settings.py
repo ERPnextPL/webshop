@@ -66,6 +66,13 @@ class TestWebshopSettings(unittest.TestCase):
 
 		self.assertIsNone(get_debtors_account(settings))
 
+	def test_request_quote_button_can_be_hidden(self):
+		settings = frappe.get_doc("Webshop Settings")
+		settings.show_request_for_quotation_button = 0
+		settings.save()
+
+		self.assertEqual(settings.show_request_for_quotation_button, 0)
+
 
 def setup_webshop_settings(values_dict):
 	"Accepts a dict of values that updates Webshop Settings."

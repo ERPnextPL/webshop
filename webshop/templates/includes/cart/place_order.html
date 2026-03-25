@@ -3,9 +3,11 @@
 		<button class="btn btn-primary btn-place-order" type="button">
 			{{ _("Checkout") }}
 		</button>
-		<button class="btn btn-outline-secondary btn-request-for-quotation" type="button">
-			{{ _("Request Quote") }}
-		</button>
+		{% if cart_settings.show_request_for_quotation_button %}
+			<button class="btn btn-outline-secondary btn-request-for-quotation" type="button">
+				{{ _("Request Quote") }}
+			</button>
+		{% endif %}
 		<button class="btn btn-outline-secondary btn-export-csv" type="button">
 			{{ _("Export Cart (.csv)") }}
 		</button>
@@ -13,9 +15,11 @@
 			{{ _("Empty Cart") }}
 		</button>
 	{% else %}
-		<button class="btn btn-primary btn-request-for-quotation" type="button">
-			{{ _("Request Quote") }}
-		</button>
+		{% if cart_settings.show_request_for_quotation_button %}
+			<button class="btn btn-primary btn-request-for-quotation" type="button">
+				{{ _("Request Quote") }}
+			</button>
+		{% endif %}
 		<button class="btn btn-outline-secondary btn-export-csv" type="button">
 			{{ _("Export Cart (.csv)") }}
 		</button>

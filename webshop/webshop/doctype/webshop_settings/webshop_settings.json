@@ -37,6 +37,7 @@
   "enable_checkout",
   "show_price_in_quotation",
   "allow_checkout_without_payment",
+  "show_request_for_quotation_button",
   "column_break_27",
   "save_quotations_as_draft",
   "payment_gateway_account",
@@ -239,6 +240,12 @@
    "fieldname": "allow_checkout_without_payment",
    "fieldtype": "Check",
    "label": "Allow Checkout Without Payment"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_request_for_quotation_button",
+   "fieldtype": "Check",
+   "label": "Show Request Quote Button"
   },
   {
    "default": "Orders",
