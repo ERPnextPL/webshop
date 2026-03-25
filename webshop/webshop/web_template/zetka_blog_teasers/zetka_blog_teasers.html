@@ -1,0 +1,105 @@
+{% from "webshop/templates/includes/zetka_homepage_macros.html" import zetka_homepage_base, zetka_button %}
+
+{%- set scope = "zetka-blog-teasers" -%}
+
+{{ zetka_homepage_base(scope) }}
+
+<style>
+.{{ scope }} .zm-blog {
+	display: grid;
+	gap: 24px;
+	padding: clamp(28px, 4vw, 44px);
+}
+
+.{{ scope }} .zm-blog__top {
+	display: grid;
+	grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+	gap: 26px;
+	align-items: end;
+}
+
+.{{ scope }} .zm-blog__list-heading {
+	margin: 0;
+	font-size: 28px;
+	line-height: 1.08;
+	letter-spacing: -0.03em;
+	font-weight: 600;
+}
+
+.{{ scope }} .zm-blog__list {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 18px;
+}
+
+.{{ scope }} .zm-blog__card {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	gap: 18px;
+	padding: 24px;
+	border: 1px solid rgba(250, 250, 250, 0.16);
+	border-radius: 28px;
+	background: rgba(250, 250, 250, 0.04);
+}
+
+.{{ scope }} .zm-blog__date {
+	font-size: 13px;
+	font-weight: 500;
+	letter-spacing: 0.22em;
+	line-height: 1.2;
+	text-transform: uppercase;
+	color: rgba(250, 250, 250, 0.7);
+}
+
+@media (max-width: 1199.98px) {
+	.{{ scope }} .zm-blog__list {
+		grid-template-columns: 1fr;
+	}
+}
+
+@media (max-width: 991.98px) {
+	.{{ scope }} .zm-blog__top {
+		grid-template-columns: 1fr;
+	}
+}
+</style>
+
+<div class="{{ scope }}">
+	<section class="zm-wrap">
+		<div class="zm-shell zm-shell--dark zm-blog">
+			<div class="zm-blog__top">
+				<div class="zm-list">
+					{%- if eyebrow -%}<p class="zm-kicker">{{ eyebrow }}</p>{%- endif -%}
+					<h2 class="zm-title">{{ title }}</h2>
+				</div>
+				<div class="zm-list">
+					{%- if description -%}<p class="zm-body">{{ description }}</p>{%- endif -%}
+					<div class="zm-actions">
+						{{ zetka_button(primary_action_url, primary_action_label, "secondary") }}
+					</div>
+				</div>
+			</div>
+
+			{%- if list_heading -%}<h3 class="zm-blog__list-heading">{{ list_heading }}</h3>{%- endif -%}
+
+			<div class="zm-blog__list">
+				{%- for index in ["1", "2", "3"] -%}
+					{%- set post_name = values["post_" + index] -%}
+					{%- if post_name -%}
+						{%- set post = frappe.get_doc("Blog Post", post_name) -%}
+						<div class="zm-blog__card">
+							<div class="zm-list">
+								{%- if post.published_on -%}<div class="zm-blog__date">{{ frappe.format_date(post.published_on) }}</div>{%- endif -%}
+								<h4 class="zm-list-label">{{ post.title }}</h4>
+							</div>
+							<div class="zm-actions">
+								{{ zetka_button("/" + (post.route or "#"), card_action_label or "Przejdź", "secondary") }}
+							</div>
+						</div>
+					{%- endif -%}
+				{%- endfor -%}
+			</div>
+		</div>
+	</section>
+</div>

@@ -11,6 +11,26 @@ $.extend(shopping_cart, {
 			title + '</h4><p class="text-muted">' + text + '</p></div>');
 	},
 
+	normalize_qty: function($input) {
+		const mustBeWholeNumber = Number($input.data("must-be-whole-number") || 0);
+		let qty = Number.parseFloat(String($input.val() || "").replace(",", "."));
+
+		if (!Number.isFinite(qty) || qty < 1) {
+			qty = 1;
+		}
+
+		if (mustBeWholeNumber && !Number.isInteger(qty)) {
+			qty = Math.round(qty);
+			frappe.show_alert({
+				message: __("This item can only be ordered in whole numbers."),
+				indicator: "orange"
+			});
+		}
+
+		$input.val(qty);
+		return qty;
+	},
+
 	bind_events: function() {
 		shopping_cart.bind_place_order();
 		shopping_cart.bind_request_quotation();
@@ -51,8 +71,9 @@ $.extend(shopping_cart, {
 	bind_change_qty: function() {
 		// bind update on input change
 		$(".cart-items-list").on("change", ".cart-qty", function() {
-			var item_code = $(this).attr("data-item-code");
-			var newVal = $(this).val();
+			const $input = $(this);
+			var item_code = $input.attr("data-item-code");
+			var newVal = shopping_cart.normalize_qty($input);
 			shopping_cart.shopping_cart_update({item_code, qty: newVal});
 		});
 

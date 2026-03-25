@@ -1,0 +1,103 @@
+{% from "webshop/templates/includes/zetka_homepage_macros.html" import zetka_homepage_base, zetka_button, zetka_media %}
+
+{%- set scope = "zetka-product-showcase" -%}
+
+{{ zetka_homepage_base(scope) }}
+
+<style>
+.{{ scope }} .zm-showcase {
+	display: grid;
+	gap: 28px;
+}
+
+.{{ scope }} .zm-showcase__top {
+	display: flex;
+	align-items: end;
+	justify-content: space-between;
+	gap: 18px;
+}
+
+.{{ scope }} .zm-showcase__grid {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 18px;
+}
+
+.{{ scope }} .zm-showcase__card {
+	display: grid;
+	gap: 18px;
+	padding: 16px 16px 22px;
+}
+
+.{{ scope }} .zm-showcase__card .zm-media,
+.{{ scope }} .zm-showcase__card img,
+.{{ scope }} .zm-showcase__card .zm-media-placeholder {
+	min-height: 260px;
+	border-radius: 26px;
+}
+
+.{{ scope }} .zm-showcase__card-body {
+	display: grid;
+	gap: 10px;
+}
+
+.{{ scope }} .zm-showcase__meta {
+	font-size: 13px;
+	font-weight: 500;
+	letter-spacing: 0.2em;
+	text-transform: uppercase;
+	color: rgba(5, 50, 47, 0.55);
+}
+
+@media (max-width: 1199.98px) {
+	.{{ scope }} .zm-showcase__grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 767.98px) {
+	.{{ scope }} .zm-showcase__top {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.{{ scope }} .zm-showcase__grid {
+		grid-template-columns: 1fr;
+	}
+}
+</style>
+
+<div class="{{ scope }}">
+	<section class="zm-wrap">
+		<div class="zm-showcase">
+			<div class="zm-showcase__top">
+				<div class="zm-list">
+					{%- if eyebrow -%}<p class="zm-kicker">{{ eyebrow }}</p>{%- endif -%}
+					<h2 class="zm-title">{{ title }}</h2>
+					{%- if description -%}<p class="zm-body">{{ description }}</p>{%- endif -%}
+				</div>
+				<div class="zm-actions">
+					{{ zetka_button(primary_action_url, primary_action_label, "secondary") }}
+				</div>
+			</div>
+
+			<div class="zm-showcase__grid">
+				{%- for index in ["1", "2", "3", "4"] -%}
+					{%- set item_name = values["product_" + index] -%}
+					{%- if item_name -%}
+						{%- set item = frappe.get_doc("Website Item", item_name) -%}
+						{%- set item_title = item.web_item_name or item.item_name or item.name -%}
+						<div class="zm-card zm-showcase__card">
+							{{ zetka_media(item.website_image, item_title, frappe.utils.get_abbr(item_title or "ZM")) }}
+							<div class="zm-showcase__card-body">
+								{%- if item.item_group -%}<div class="zm-showcase__meta">{{ item.item_group }}</div>{%- endif -%}
+								<h3 class="zm-list-label">{{ item_title }}</h3>
+								{{ zetka_button("/" + (item.route or "#"), card_action_label or "Zobacz", "secondary") }}
+							</div>
+						</div>
+					{%- endif -%}
+				{%- endfor -%}
+			</div>
+		</div>
+	</section>
+</div>

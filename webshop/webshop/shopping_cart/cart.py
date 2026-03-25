@@ -21,6 +21,31 @@ class WebsitePriceListMissingError(frappe.ValidationError):
     pass
 
 
+def get_cart_item_uom(item_code):
+    return frappe.get_cached_value("Item", item_code, "sales_uom") or frappe.get_cached_value(
+        "Item", item_code, "stock_uom"
+    )
+
+
+def cart_item_qty_must_be_whole_number(item_code):
+    uom = get_cart_item_uom(item_code)
+    return uom and cint(frappe.get_cached_value("UOM", uom, "must_be_whole_number"))
+
+
+def validate_cart_item_qty(item_code, qty):
+    if qty <= 0 or not cart_item_qty_must_be_whole_number(item_code):
+        return
+
+    if cint(qty) != qty:
+        uom = get_cart_item_uom(item_code)
+        frappe.throw(
+            _("Qty ({0}) cannot be a fraction for UOM {1}.").format(
+                frappe.bold(qty), frappe.bold(uom)
+            ),
+            title=_("Invalid Quantity"),
+        )
+
+
 def set_cart_count(quotation=None):
     if cint(frappe.db.get_singles_value("Webshop Settings", "enabled")):
         if not quotation:
@@ -156,6 +181,7 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False):
 
     empty_card = False
     qty = flt(qty)
+    validate_cart_item_qty(item_code, qty)
     if qty == 0:
         quotation_items = quotation.get("items", {"item_code": ["!=", item_code]})
         if quotation_items:
@@ -355,6 +381,7 @@ def decorate_quotation_doc(doc):
         )
 
         d.warehouse = website_warehouse
+        d.must_be_whole_number = cart_item_qty_must_be_whole_number(d.item_code)
 
     return doc
 

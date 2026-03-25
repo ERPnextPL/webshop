@@ -124,6 +124,19 @@ class TestShoppingCart(unittest.TestCase):
 		self.assertEqual(quotation.net_total, 70)
 		self.assertEqual(len(quotation.get("items")), 2)
 
+	def test_update_cart_rejects_fractional_qty_for_whole_number_uom(self):
+		self.test_add_to_cart()
+
+		item_uom = frappe.get_cached_value("Item", "_Test Item", "stock_uom")
+		frappe.db.set_value("UOM", item_uom, "must_be_whole_number", 1)
+		frappe.clear_document_cache("UOM", item_uom)
+
+		with self.assertRaises(frappe.ValidationError):
+			update_cart("_Test Item", 2.5)
+
+		quotation = self.test_get_cart_customer("_Test Customer 2")
+		self.assertEqual(quotation.get("items")[0].qty, 1)
+
 	def test_remove_from_cart(self):
 		# first, add to cart
 		self.test_add_to_cart()

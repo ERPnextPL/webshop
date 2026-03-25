@@ -52,7 +52,7 @@
 							{% set disabled = 'disabled' if d.is_free_item else '' %}
 							<div class="qty-adjuster">
 								<button class="qty-btn qty-btn-minus" data-dir="dwn" {{ disabled }}>−</button>
-								<input class="qty-input cart-qty" type="number" value="{{ d.qty }}" data-item-code="{{ d.item_code }}" {{ disabled }}>
+								<input class="qty-input cart-qty" type="number" value="{{ d.qty | int if d.must_be_whole_number else d.qty }}" min="1" step="{{ 1 if d.must_be_whole_number else 'any' }}" inputmode="{{ 'numeric' if d.must_be_whole_number else 'decimal' }}" data-item-code="{{ d.item_code }}" data-must-be-whole-number="{{ 1 if d.must_be_whole_number else 0 }}" {{ disabled }}>
 								<button class="qty-btn qty-btn-plus" data-dir="up" {{ disabled }}>+</button>
 							</div>
 						</div>

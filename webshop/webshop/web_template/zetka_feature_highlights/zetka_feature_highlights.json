@@ -1,0 +1,94 @@
+{
+ "doctype": "Web Template",
+ "fields": [
+  {
+   "fieldname": "eyebrow",
+   "fieldtype": "Data",
+   "label": "Eyebrow"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "intro",
+   "fieldtype": "Small Text",
+   "label": "Intro"
+  },
+  {
+   "fieldname": "image",
+   "fieldtype": "Attach Image",
+   "label": "Image"
+  },
+  {
+   "fieldname": "feature_1",
+   "fieldtype": "Section Break",
+   "label": "Feature 1"
+  },
+  {
+   "fieldname": "feature_1_icon",
+   "fieldtype": "Select",
+   "label": "Feature 1 Icon",
+   "options": "Quality\nTrust\nSelection\nCustom\nDelivery"
+  },
+  {
+   "fieldname": "feature_1_title",
+   "fieldtype": "Data",
+   "label": "Feature 1 Title"
+  },
+  {
+   "fieldname": "feature_1_text",
+   "fieldtype": "Small Text",
+   "label": "Feature 1 Text"
+  },
+  {
+   "fieldname": "feature_2",
+   "fieldtype": "Section Break",
+   "label": "Feature 2"
+  },
+  {
+   "fieldname": "feature_2_icon",
+   "fieldtype": "Select",
+   "label": "Feature 2 Icon",
+   "options": "Quality\nTrust\nSelection\nCustom\nDelivery"
+  },
+  {
+   "fieldname": "feature_2_title",
+   "fieldtype": "Data",
+   "label": "Feature 2 Title"
+  },
+  {
+   "fieldname": "feature_2_text",
+   "fieldtype": "Small Text",
+   "label": "Feature 2 Text"
+  },
+  {
+   "fieldname": "feature_3",
+   "fieldtype": "Section Break",
+   "label": "Feature 3"
+  },
+  {
+   "fieldname": "feature_3_icon",
+   "fieldtype": "Select",
+   "label": "Feature 3 Icon",
+   "options": "Quality\nTrust\nSelection\nCustom\nDelivery"
+  },
+  {
+   "fieldname": "feature_3_title",
+   "fieldtype": "Data",
+   "label": "Feature 3 Title"
+  },
+  {
+   "fieldname": "feature_3_text",
+   "fieldtype": "Small Text",
+   "label": "Feature 3 Text"
+  }
+ ],
+ "module": "Webshop",
+ "name": "Zetka Feature Highlights",
+ "standard": 1,
+ "template": "",
+ "type": "Section"
+}
