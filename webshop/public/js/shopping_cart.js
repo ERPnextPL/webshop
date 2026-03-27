@@ -83,7 +83,10 @@ $.extend(shopping_cart, {
 				window.location.href = res.message || "/login";
 			});
 		} else {
-			shopping_cart.freeze();
+			const shouldFreeze = opts.freeze !== false;
+			if (shouldFreeze) {
+				shopping_cart.freeze();
+			}
 			return frappe.call({
 				type: "POST",
 				method: "webshop.webshop.shopping_cart.cart.update_cart",
@@ -95,10 +98,17 @@ $.extend(shopping_cart, {
 				},
 				btn: opts.btn,
 				callback: function(r) {
-					shopping_cart.unfreeze();
+					if (shouldFreeze) {
+						shopping_cart.unfreeze();
+					}
 					shopping_cart.set_cart_count(true);
 					if(opts.callback)
 						opts.callback(r);
+				},
+				always: function(r) {
+					if (opts.always) {
+						opts.always(r);
+					}
 				}
 			});
 		}

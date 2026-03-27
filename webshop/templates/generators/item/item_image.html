@@ -17,21 +17,21 @@
 				</div>
 			</div>
 
-			<div class="item-gallery-footer">
-				<div class="item-gallery-nav {% if display_images | length < 2 %}item-gallery-nav--single{% endif %}">
-					<button type="button" class="item-gallery-nav-btn item-gallery-prev" aria-label="{{ _('Previous image') }}" {% if display_images | length < 2 %}disabled{% endif %}>
-						<svg viewBox="0 0 15 15" aria-hidden="true" focusable="false">
-							<path d="M1.944 7.5h11.112M5.722 11.278 1.944 7.5l3.778-3.778"></path>
-						</svg>
-					</button>
-					<button type="button" class="item-gallery-nav-btn item-gallery-next" aria-label="{{ _('Next image') }}" {% if display_images | length < 2 %}disabled{% endif %}>
-						<svg viewBox="0 0 15 15" aria-hidden="true" focusable="false">
-							<path d="M13.056 7.5H1.944M9.278 3.722 13.056 7.5l-3.778 3.778"></path>
-						</svg>
-					</button>
-				</div>
+			{% if display_images | length > 1 %}
+				<div class="item-gallery-footer">
+					<div class="item-gallery-nav">
+						<button type="button" class="item-gallery-nav-btn item-gallery-prev" aria-label="{{ _('Previous image') }}">
+							<svg viewBox="0 0 15 15" aria-hidden="true" focusable="false">
+								<path d="M1.944 7.5h11.112M5.722 11.278 1.944 7.5l3.778-3.778"></path>
+							</svg>
+						</button>
+						<button type="button" class="item-gallery-nav-btn item-gallery-next" aria-label="{{ _('Next image') }}">
+							<svg viewBox="0 0 15 15" aria-hidden="true" focusable="false">
+								<path d="M13.056 7.5H1.944M9.278 3.722 13.056 7.5l-3.778 3.778"></path>
+							</svg>
+						</button>
+					</div>
 
-				{% if display_images | length > 1 %}
 					<div class="item-gallery-thumbs" role="tablist" aria-label="{{ _('Product images') }}">
 						{% for item in display_images %}
 							<button
@@ -46,8 +46,8 @@
 							</button>
 						{% endfor %}
 					</div>
-				{% endif %}
-			</div>
+				</div>
+			{% endif %}
 		</div>
 	{% endif %}
 

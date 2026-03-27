@@ -1,0 +1,65 @@
+{
+ "doctype": "Web Template",
+ "fields": [
+  {
+   "fieldname": "eyebrow",
+   "fieldtype": "Data",
+   "label": "Eyebrow"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "primary_action_label",
+   "fieldtype": "Data",
+   "label": "Primary Action Label"
+  },
+  {
+   "fieldname": "primary_action_url",
+   "fieldtype": "Data",
+   "label": "Primary Action URL"
+  },
+  {
+   "fieldname": "card_action_label",
+   "fieldtype": "Data",
+   "label": "Card Action Label"
+  },
+  {
+   "fieldname": "product_1",
+   "fieldtype": "Link",
+   "label": "Website Item 1",
+   "options": "Website Item"
+  },
+  {
+   "fieldname": "product_2",
+   "fieldtype": "Link",
+   "label": "Website Item 2",
+   "options": "Website Item"
+  },
+  {
+   "fieldname": "product_3",
+   "fieldtype": "Link",
+   "label": "Website Item 3",
+   "options": "Website Item"
+  },
+  {
+   "fieldname": "product_4",
+   "fieldtype": "Link",
+   "label": "Website Item 4",
+   "options": "Website Item"
+  }
+ ],
+ "module": "Webshop",
+ "name": "Zetka Product Showcase",
+ "standard": 1,
+ "template": "",
+ "type": "Section"
+}

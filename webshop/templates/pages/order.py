@@ -23,7 +23,11 @@ def get_context(context):
 		"Payment Request", {"reference_name": frappe.form_dict.name}, "name"
 	)
 
-	context.enabled_checkout = frappe.get_doc("Webshop Settings").enable_checkout
+	webshop_settings = frappe.get_doc("Webshop Settings")
+	context.enabled_checkout = webshop_settings.enable_checkout
+	context.can_pay_for_order = bool(
+		webshop_settings.payment_gateway_account and not webshop_settings.allow_checkout_without_payment
+	)
 
 	default_print_format = frappe.db.get_value(
 		"Property Setter",

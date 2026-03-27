@@ -1,0 +1,101 @@
+{% from "webshop/templates/includes/zetka_homepage_macros.html" import zetka_homepage_base, zetka_button, zetka_media %}
+
+{%- set scope = "zetka-split-story" -%}
+{%- set dark_theme = theme == "Dark" -%}
+
+{{ zetka_homepage_base(scope) }}
+
+<style>
+.{{ scope }} .zm-story {
+	padding: clamp(24px, 4vw, 44px);
+}
+
+.{{ scope }} .zm-story__layout {
+	display: grid;
+	grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.06fr);
+	gap: clamp(24px, 4vw, 44px);
+	align-items: stretch;
+}
+
+.{{ scope }} .zm-story__layout--image-left {
+	grid-template-columns: minmax(0, 1.06fr) minmax(0, 0.94fr);
+}
+
+.{{ scope }} .zm-story__layout--image-left .zm-story__content {
+	order: 2;
+}
+
+.{{ scope }} .zm-story__layout--image-left .zm-story__media-wrap {
+	order: 1;
+}
+
+.{{ scope }} .zm-story__media-wrap,
+.{{ scope }} .zm-story__media-wrap .zm-media,
+.{{ scope }} .zm-story__media-wrap img,
+.{{ scope }} .zm-story__media-wrap .zm-media-placeholder {
+	height: 100%;
+	min-height: 420px;
+	border-radius: var(--zm-radius-xl);
+}
+
+.{{ scope }} .zm-story__content {
+	display: grid;
+	gap: 22px;
+	align-content: center;
+}
+
+.{{ scope }} .zm-story__stack {
+	display: grid;
+	gap: 14px;
+}
+
+@media (max-width: 991.98px) {
+	.{{ scope }} .zm-story__layout,
+	.{{ scope }} .zm-story__layout--image-left {
+		grid-template-columns: 1fr;
+	}
+
+	.{{ scope }} .zm-story__layout--image-left .zm-story__content,
+	.{{ scope }} .zm-story__layout--image-left .zm-story__media-wrap {
+		order: initial;
+	}
+
+	.{{ scope }} .zm-story__media-wrap,
+	.{{ scope }} .zm-story__media-wrap .zm-media,
+	.{{ scope }} .zm-story__media-wrap img,
+	.{{ scope }} .zm-story__media-wrap .zm-media-placeholder {
+		min-height: 320px;
+	}
+}
+</style>
+
+<div class="{{ scope }}">
+	<section class="zm-wrap">
+		<div class="zm-shell zm-story {{ 'zm-shell--dark' if dark_theme else 'zm-shell--tint' }}">
+			<div class="zm-story__layout {{ 'zm-story__layout--image-left' if image_position == 'Left' else '' }}">
+				<div class="zm-story__content">
+					{%- if eyebrow -%}<p class="zm-kicker">{{ eyebrow }}</p>{%- endif -%}
+					<div class="zm-story__stack">
+						<h2 class="zm-title">{{ title }}</h2>
+						{%- if body -%}<p class="zm-body">{{ body }}</p>{%- endif -%}
+					</div>
+
+					{%- if secondary_title or secondary_body -%}
+					<div class="zm-story__stack">
+						{%- if secondary_title -%}<h3 class="zm-subtitle">{{ secondary_title }}</h3>{%- endif -%}
+						{%- if secondary_body -%}<p class="zm-body">{{ secondary_body }}</p>{%- endif -%}
+					</div>
+					{%- endif -%}
+
+					<div class="zm-actions">
+						{{ zetka_button(primary_action_url, primary_action_label, "secondary" if dark_theme else "primary") }}
+					</div>
+				</div>
+
+				<div class="zm-story__media-wrap">
+					{{ zetka_media(image, title, "ZM") }}
+				</div>
+			</div>
+		</div>
+	</section>
+</div>

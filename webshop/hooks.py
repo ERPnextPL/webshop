@@ -26,6 +26,13 @@ update_website_context = [
 
 website_generators = ["Website Item", "Item Group"]
 
+fixtures = [
+    {
+        "dt": "Web Page",
+        "filters": [["route", "in", ["shop-home"]]],
+    }
+]
+
 override_doctype_class = {
     "Payment Request": "webshop.webshop.doctype.override_doctype.payment_request.PaymentRequest",
     "Item Group": "webshop.webshop.doctype.override_doctype.item_group.WebshopItemGroup",

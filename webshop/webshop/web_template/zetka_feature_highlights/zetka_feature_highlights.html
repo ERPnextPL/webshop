@@ -1,0 +1,121 @@
+{% from "webshop/templates/includes/zetka_homepage_macros.html" import zetka_homepage_base, zetka_media, zetka_feature_icon %}
+
+{%- set scope = "zetka-feature-highlights" -%}
+
+{{ zetka_homepage_base(scope) }}
+
+<style>
+.{{ scope }} .zm-features {
+	display: grid;
+	grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+	gap: clamp(24px, 4vw, 40px);
+	align-items: stretch;
+}
+
+.{{ scope }} .zm-features__media,
+.{{ scope }} .zm-features__media .zm-media,
+.{{ scope }} .zm-features__media img,
+.{{ scope }} .zm-features__media .zm-media-placeholder {
+	min-height: 100%;
+	border-radius: var(--zm-radius-xl);
+}
+
+.{{ scope }} .zm-features__panel {
+	display: grid;
+	gap: 28px;
+	padding: clamp(28px, 4vw, 48px);
+	border: 1px solid var(--zm-line);
+	border-radius: var(--zm-radius-xl);
+	background: linear-gradient(180deg, #ffffff 0%, #f7fbfa 100%);
+	box-shadow: var(--zm-shadow);
+}
+
+.{{ scope }} .zm-features__items {
+	display: grid;
+	gap: 18px;
+}
+
+.{{ scope }} .zm-feature {
+	display: grid;
+	grid-template-columns: 72px minmax(0, 1fr);
+	gap: 18px;
+	padding: 18px 20px;
+	border-radius: var(--zm-radius-md);
+	background: rgba(238, 244, 242, 0.72);
+}
+
+.{{ scope }} .zm-feature__icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 72px;
+	height: 72px;
+	border-radius: 24px;
+	background: var(--zm-forest);
+	color: #fafafa;
+}
+
+.{{ scope }} .zm-feature__icon svg {
+	width: 32px;
+	height: 32px;
+}
+
+.{{ scope }} .zm-feature__content {
+	display: grid;
+	gap: 8px;
+	align-content: center;
+}
+
+@media (max-width: 991.98px) {
+	.{{ scope }} .zm-features {
+		grid-template-columns: 1fr;
+	}
+
+	.{{ scope }} .zm-features__media,
+	.{{ scope }} .zm-features__media .zm-media,
+	.{{ scope }} .zm-features__media img,
+	.{{ scope }} .zm-features__media .zm-media-placeholder {
+		min-height: 320px;
+	}
+
+	.{{ scope }} .zm-feature {
+		grid-template-columns: 1fr;
+	}
+}
+</style>
+
+<div class="{{ scope }}">
+	<section class="zm-wrap">
+		<div class="zm-features">
+			<div class="zm-features__media">
+				{{ zetka_media(image, title, "ZM") }}
+			</div>
+
+			<div class="zm-features__panel">
+				<div class="zm-list">
+					{%- if eyebrow -%}<p class="zm-kicker">{{ eyebrow }}</p>{%- endif -%}
+					<h2 class="zm-title">{{ title }}</h2>
+					{%- if intro -%}<p class="zm-body">{{ intro }}</p>{%- endif -%}
+				</div>
+
+				<div class="zm-features__items">
+					{%- for index in ["1", "2", "3"] -%}
+						{%- set feature_title = values["feature_" + index + "_title"] -%}
+						{%- set feature_text = values["feature_" + index + "_text"] -%}
+						{%- if feature_title or feature_text -%}
+						<div class="zm-feature">
+							<div class="zm-feature__icon">
+								{{ zetka_feature_icon(values["feature_" + index + "_icon"] or "Quality") }}
+							</div>
+							<div class="zm-feature__content">
+								{%- if feature_title -%}<h3 class="zm-list-label">{{ feature_title }}</h3>{%- endif -%}
+								{%- if feature_text -%}<p class="zm-card-text">{{ feature_text }}</p>{%- endif -%}
+							</div>
+						</div>
+						{%- endif -%}
+					{%- endfor -%}
+				</div>
+			</div>
+		</div>
+	</section>
+</div>

@@ -1,0 +1,126 @@
+{
+ "doctype": "Web Template",
+ "fields": [
+  {
+   "fieldname": "anchor_id",
+   "fieldtype": "Data",
+   "label": "Anchor ID"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "subtitle",
+   "fieldtype": "Small Text",
+   "label": "Subtitle"
+  },
+  {
+   "fieldname": "item_1",
+   "fieldtype": "Section Break",
+   "label": "Tile 1"
+  },
+  {
+   "fieldname": "item_1_title",
+   "fieldtype": "Data",
+   "label": "Tile 1 Title"
+  },
+  {
+   "fieldname": "item_1_image",
+   "fieldtype": "Attach Image",
+   "label": "Tile 1 Image"
+  },
+  {
+   "fieldname": "item_1_url",
+   "fieldtype": "Data",
+   "label": "Tile 1 URL"
+  },
+  {
+   "fieldname": "item_1_button_label",
+   "fieldtype": "Data",
+   "label": "Tile 1 Button Label"
+  },
+  {
+   "fieldname": "item_2",
+   "fieldtype": "Section Break",
+   "label": "Tile 2"
+  },
+  {
+   "fieldname": "item_2_title",
+   "fieldtype": "Data",
+   "label": "Tile 2 Title"
+  },
+  {
+   "fieldname": "item_2_image",
+   "fieldtype": "Attach Image",
+   "label": "Tile 2 Image"
+  },
+  {
+   "fieldname": "item_2_url",
+   "fieldtype": "Data",
+   "label": "Tile 2 URL"
+  },
+  {
+   "fieldname": "item_2_button_label",
+   "fieldtype": "Data",
+   "label": "Tile 2 Button Label"
+  },
+  {
+   "fieldname": "item_3",
+   "fieldtype": "Section Break",
+   "label": "Tile 3"
+  },
+  {
+   "fieldname": "item_3_title",
+   "fieldtype": "Data",
+   "label": "Tile 3 Title"
+  },
+  {
+   "fieldname": "item_3_image",
+   "fieldtype": "Attach Image",
+   "label": "Tile 3 Image"
+  },
+  {
+   "fieldname": "item_3_url",
+   "fieldtype": "Data",
+   "label": "Tile 3 URL"
+  },
+  {
+   "fieldname": "item_3_button_label",
+   "fieldtype": "Data",
+   "label": "Tile 3 Button Label"
+  },
+  {
+   "fieldname": "item_4",
+   "fieldtype": "Section Break",
+   "label": "Tile 4"
+  },
+  {
+   "fieldname": "item_4_title",
+   "fieldtype": "Data",
+   "label": "Tile 4 Title"
+  },
+  {
+   "fieldname": "item_4_image",
+   "fieldtype": "Attach Image",
+   "label": "Tile 4 Image"
+  },
+  {
+   "fieldname": "item_4_url",
+   "fieldtype": "Data",
+   "label": "Tile 4 URL"
+  },
+  {
+   "fieldname": "item_4_button_label",
+   "fieldtype": "Data",
+   "label": "Tile 4 Button Label"
+  }
+ ],
+ "module": "Webshop",
+ "name": "Zetka Offer Tiles",
+ "standard": 1,
+ "template": "",
+ "type": "Section"
+}

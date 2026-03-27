@@ -1,0 +1,107 @@
+{% from "webshop/templates/includes/zetka_homepage_macros.html" import zetka_homepage_base, zetka_button, zetka_media %}
+
+{%- set scope = "zetka-offer-tiles" -%}
+
+{{ zetka_homepage_base(scope) }}
+
+<style>
+.{{ scope }} .zm-offer {
+	display: grid;
+	gap: 26px;
+}
+
+.{{ scope }} .zm-offer__grid {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 18px;
+}
+
+.{{ scope }} .zm-offer__tile {
+	position: relative;
+	min-height: 520px;
+	border-radius: var(--zm-radius-lg);
+	overflow: hidden;
+	box-shadow: var(--zm-shadow);
+}
+
+.{{ scope }} .zm-offer__tile .zm-media,
+.{{ scope }} .zm-offer__tile img,
+.{{ scope }} .zm-offer__tile .zm-media-placeholder {
+	min-height: 520px;
+}
+
+.{{ scope }} .zm-offer__overlay {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	gap: 18px;
+	padding: 28px;
+	background: linear-gradient(180deg, rgba(5, 50, 47, 0.06) 0%, rgba(5, 50, 47, 0.76) 100%);
+}
+
+.{{ scope }} .zm-offer__overlay .zm-card-title,
+.{{ scope }} .zm-offer__overlay .zm-card-text {
+	color: #fafafa;
+}
+
+.{{ scope }} .zm-offer__overlay .zm-button--primary {
+	background: #fafafa;
+	border-color: #fafafa;
+	color: var(--zm-forest);
+}
+
+.{{ scope }} .zm-offer__overlay .zm-button--primary:hover {
+	background: var(--zm-mint);
+	border-color: var(--zm-mint);
+}
+
+@media (max-width: 1199.98px) {
+	.{{ scope }} .zm-offer__grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 767.98px) {
+	.{{ scope }} .zm-offer__grid {
+		grid-template-columns: 1fr;
+	}
+
+	.{{ scope }} .zm-offer__tile,
+	.{{ scope }} .zm-offer__tile .zm-media,
+	.{{ scope }} .zm-offer__tile img,
+	.{{ scope }} .zm-offer__tile .zm-media-placeholder {
+		min-height: 420px;
+	}
+}
+</style>
+
+<div class="{{ scope }}">
+	<section class="zm-wrap"{% if anchor_id %} id="{{ anchor_id }}"{% endif %}>
+		<div class="zm-offer">
+			<div class="zm-list">
+				<h2 class="zm-title">{{ title }}</h2>
+				{%- if subtitle -%}<p class="zm-body">{{ subtitle }}</p>{%- endif -%}
+			</div>
+
+			<div class="zm-offer__grid">
+				{%- for index in ["1", "2", "3", "4"] -%}
+					{%- set tile_title = values["item_" + index + "_title"] -%}
+					{%- set tile_image = values["item_" + index + "_image"] -%}
+					{%- set tile_url = values["item_" + index + "_url"] -%}
+					{%- set tile_button = values["item_" + index + "_button_label"] or "Zobacz więcej" -%}
+					{%- if tile_title or tile_image or tile_url -%}
+					<div class="zm-offer__tile">
+						{{ zetka_media(tile_image, tile_title, "ZM") }}
+						<div class="zm-offer__overlay">
+							{%- if tile_title -%}<h3 class="zm-card-title">{{ tile_title }}</h3>{%- endif -%}
+							{{ zetka_button(tile_url, tile_button) }}
+						</div>
+					</div>
+					{%- endif -%}
+				{%- endfor -%}
+			</div>
+		</div>
+	</section>
+</div>

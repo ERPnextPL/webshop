@@ -1,0 +1,139 @@
+{% from "webshop/templates/includes/zetka_homepage_macros.html" import zetka_homepage_base, zetka_button, zetka_media %}
+
+{%- set scope = "zetka-homepage-hero" -%}
+{%- set carousel_id = "zetka-hero-" + frappe.utils.generate_hash(length=10) -%}
+{%- set ns = namespace(slide_count=0) -%}
+{%- for index in ["1", "2", "3"] -%}
+	{%- if values["image_" + index] -%}
+		{%- set ns.slide_count = ns.slide_count + 1 -%}
+	{%- endif -%}
+{%- endfor -%}
+
+{{ zetka_homepage_base(scope) }}
+
+<style>
+.{{ scope }} .zm-hero {
+	display: grid;
+	grid-template-columns: minmax(0, 1.04fr) minmax(0, 0.96fr);
+	gap: clamp(28px, 4vw, 68px);
+	align-items: center;
+}
+
+.{{ scope }} .zm-hero__content {
+	display: grid;
+	gap: 24px;
+}
+
+.{{ scope }} .zm-hero__media {
+	border-radius: var(--zm-radius-xl);
+	overflow: hidden;
+	box-shadow: var(--zm-shadow);
+	background: #d9e7e3;
+}
+
+.{{ scope }} .zm-hero__slider,
+.{{ scope }} .zm-hero__slide,
+.{{ scope }} .zm-hero__slide .zm-media,
+.{{ scope }} .zm-hero__slide img,
+.{{ scope }} .zm-hero__placeholder {
+	height: 100%;
+	min-height: 420px;
+}
+
+.{{ scope }} .zm-hero__slide img,
+.{{ scope }} .zm-hero__placeholder {
+	border-radius: var(--zm-radius-xl);
+}
+
+.{{ scope }} .zm-hero__placeholder {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: linear-gradient(135deg, #dfeae7 0%, #c6ded7 100%);
+	color: rgba(5, 50, 47, 0.58);
+	font-size: 54px;
+	font-weight: 700;
+	letter-spacing: -0.06em;
+}
+
+.{{ scope }} .carousel-indicators {
+	margin-bottom: 22px;
+}
+
+.{{ scope }} .carousel-indicators li {
+	width: 10px;
+	height: 10px;
+	margin: 0 6px;
+	border-radius: 999px;
+	border: 0;
+	background: rgba(253, 254, 254, 0.5);
+}
+
+.{{ scope }} .carousel-indicators .active {
+	background: #ffffff;
+}
+
+@media (max-width: 991.98px) {
+	.{{ scope }} .zm-hero {
+		grid-template-columns: 1fr;
+	}
+
+	.{{ scope }} .zm-hero__slider,
+	.{{ scope }} .zm-hero__slide,
+	.{{ scope }} .zm-hero__slide .zm-media,
+	.{{ scope }} .zm-hero__slide img,
+	.{{ scope }} .zm-hero__placeholder {
+		min-height: 340px;
+	}
+}
+</style>
+
+<div class="{{ scope }}">
+	<section class="zm-wrap">
+		<div class="zm-hero">
+			<div class="zm-hero__content">
+				{%- if eyebrow -%}<p class="zm-kicker">{{ eyebrow }}</p>{%- endif -%}
+				<h1 class="zm-title">{{ title }}</h1>
+				{%- if description -%}<p class="zm-body">{{ description }}</p>{%- endif -%}
+				<div class="zm-actions">
+					{{ zetka_button(primary_action_url, primary_action_label) }}
+					{{ zetka_button(secondary_action_url, secondary_action_label, "secondary") }}
+				</div>
+			</div>
+
+			<div class="zm-hero__media">
+				<div id="{{ carousel_id }}" class="carousel slide zm-hero__slider" data-ride="carousel">
+					{%- if ns.slide_count > 1 -%}
+					<ol class="carousel-indicators">
+						{%- for index in ["1", "2", "3"] if values["image_" + index] -%}
+						<li data-target="#{{ carousel_id }}" data-slide-to="{{ loop.index0 }}" class="{{ 'active' if loop.first else '' }}"></li>
+						{%- endfor -%}
+					</ol>
+					{%- endif -%}
+
+					<div class="carousel-inner">
+						{%- for index in ["1", "2", "3"] if values["image_" + index] -%}
+						<div class="carousel-item zm-hero__slide {{ 'active' if loop.first else '' }}">
+							{{ zetka_media(values["image_" + index], title, "ZM") }}
+						</div>
+						{%- else -%}
+						<div class="zm-hero__placeholder">ZM</div>
+						{%- endfor -%}
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+</div>
+
+{%- if ns.slide_count > 1 -%}
+<script>
+	frappe.ready(function () {
+		$("#{{ carousel_id }}").carousel({
+			interval: 5000,
+			pause: "hover",
+			wrap: true
+		});
+	});
+</script>
+{%- endif -%}

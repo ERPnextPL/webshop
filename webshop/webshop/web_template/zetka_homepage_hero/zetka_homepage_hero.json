@@ -1,0 +1,61 @@
+{
+ "doctype": "Web Template",
+ "fields": [
+  {
+   "fieldname": "eyebrow",
+   "fieldtype": "Data",
+   "label": "Eyebrow"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "primary_action_label",
+   "fieldtype": "Data",
+   "label": "Primary Action Label"
+  },
+  {
+   "fieldname": "primary_action_url",
+   "fieldtype": "Data",
+   "label": "Primary Action URL"
+  },
+  {
+   "fieldname": "secondary_action_label",
+   "fieldtype": "Data",
+   "label": "Secondary Action Label"
+  },
+  {
+   "fieldname": "secondary_action_url",
+   "fieldtype": "Data",
+   "label": "Secondary Action URL"
+  },
+  {
+   "fieldname": "image_1",
+   "fieldtype": "Attach Image",
+   "label": "Slide Image 1"
+  },
+  {
+   "fieldname": "image_2",
+   "fieldtype": "Attach Image",
+   "label": "Slide Image 2"
+  },
+  {
+   "fieldname": "image_3",
+   "fieldtype": "Attach Image",
+   "label": "Slide Image 3"
+  }
+ ],
+ "module": "Webshop",
+ "name": "Zetka Homepage Hero",
+ "standard": 1,
+ "template": "",
+ "type": "Section"
+}

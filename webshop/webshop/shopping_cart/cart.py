@@ -21,6 +21,31 @@ class WebsitePriceListMissingError(frappe.ValidationError):
     pass
 
 
+def get_cart_item_uom(item_code):
+    return frappe.get_cached_value("Item", item_code, "sales_uom") or frappe.get_cached_value(
+        "Item", item_code, "stock_uom"
+    )
+
+
+def cart_item_qty_must_be_whole_number(item_code):
+    uom = get_cart_item_uom(item_code)
+    return uom and cint(frappe.get_cached_value("UOM", uom, "must_be_whole_number"))
+
+
+def validate_cart_item_qty(item_code, qty):
+    if qty <= 0 or not cart_item_qty_must_be_whole_number(item_code):
+        return
+
+    if cint(qty) != qty:
+        uom = get_cart_item_uom(item_code)
+        frappe.throw(
+            _("Qty ({0}) cannot be a fraction for UOM {1}.").format(
+                frappe.bold(qty), frappe.bold(uom)
+            ),
+            title=_("Invalid Quantity"),
+        )
+
+
 def set_cart_count(quotation=None):
     if cint(frappe.db.get_singles_value("Webshop Settings", "enabled")):
         if not quotation:
@@ -156,6 +181,7 @@ def update_cart(item_code, qty, additional_notes=None, with_items=False):
 
     empty_card = False
     qty = flt(qty)
+    validate_cart_item_qty(item_code, qty)
     if qty == 0:
         quotation_items = quotation.get("items", {"item_code": ["!=", item_code]})
         if quotation_items:
@@ -330,31 +356,33 @@ def decorate_quotation_doc(doc):
 
         # Variant Item
         if not frappe.db.exists("Website Item", {"item_code": item_code}):
-            variant_data = frappe.db.get_values(
+            variant_rows = frappe.db.get_values(
                 "Item",
                 filters={"item_code": item_code},
                 fieldname=["variant_of", "item_name", "image"],
                 as_dict=True,
-            )[0]
-            item_code = variant_data.variant_of
-            fields = fields[1:]
-            d.web_item_name = variant_data.item_name
-
-            if variant_data.image:  # get image from variant or template web item
-                d.thumbnail = variant_data.image
-                fields = fields[2:]
-
-        d.update(
-            frappe.db.get_value(
-                "Website Item", {"item_code": item_code}, fields, as_dict=True
             )
-        )
+            variant_data = variant_rows[0] if variant_rows else None
+            if variant_data and variant_data.variant_of:
+                item_code = variant_data.variant_of
+                fields = fields[1:]
+                d.web_item_name = variant_data.item_name
+
+                if variant_data.image:  # get image from variant or template web item
+                    d.thumbnail = variant_data.image
+                    fields = fields[2:]
+
+        website_item_data = frappe.db.get_value(
+            "Website Item", {"item_code": item_code}, fields, as_dict=True
+        ) or {}
+        d.update(website_item_data)
 
         website_warehouse = frappe.get_cached_value(
             "Website Item", {"item_code": item_code}, "website_warehouse"
         )
 
         d.warehouse = website_warehouse
+        d.must_be_whole_number = cart_item_qty_must_be_whole_number(d.item_code)
 
     return doc
 
@@ -640,6 +668,9 @@ def get_party(user=None, create=True):
 
 
 def get_debtors_account(cart_settings):
+    if cart_settings.allow_checkout_without_payment:
+        return None
+
     if not cart_settings.payment_gateway_account:
         frappe.throw(_("Payment Gateway Account not set"), _("Mandatory"))
 

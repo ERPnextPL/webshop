@@ -77,6 +77,9 @@ class WebshopSettings(Document):
 		self.hide_variants = 0
 
 	def validate_checkout(self):
+		if self.enable_checkout and self.allow_checkout_without_payment:
+			return
+
 		if self.enable_checkout and not self.payment_gateway_account:
 			self.enable_checkout = 0
 

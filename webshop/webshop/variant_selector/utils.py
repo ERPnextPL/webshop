@@ -121,6 +121,8 @@ def get_attributes_and_values(item_code):
         valid_attribute_values = valid_options.get(attr.attribute, [])
         ordered_values = ordered_attribute_value_map.get(attr.attribute, [])
         attr["values"] = [v for v in ordered_values if v in valid_attribute_values]
+        if attr.get("optional"):
+            attr["values"].append("")
 
     return attributes
 
@@ -237,6 +239,8 @@ def get_next_attribute_and_values(item_code, selected_attributes):
 
     item_cache = ItemVariantsCacheManager(item_code)
     item_variants_data = item_cache.get_item_variants_data()
+    item_attribute_value_map = item_cache.get_item_attribute_value_map()
+    optional_attributes = item_cache.get_optional_attributes()
 
     attributes = get_item_attributes(item_code)
     attribute_list = [a.attribute for a in attributes]
@@ -253,22 +257,28 @@ def get_next_attribute_and_values(item_code, selected_attributes):
 
     for a in attribute_list:
         valid_options_for_attributes[a] = set()
+        attribute_filters = {
+            key: value for key, value in selected_attributes.items() if key != a
+        }
+        matching_items_for_attribute = get_items_with_selected_attributes(
+            item_code, attribute_filters
+        )
 
-        selected_attribute = selected_attributes.get(a, None)
-        if selected_attribute:
-            # already selected attribute values are valid options
-            valid_options_for_attributes[a].add(selected_attribute)
+        for variant_code, attribute, attribute_value in item_variants_data:
+            if (
+                variant_code in matching_items_for_attribute
+                and attribute == a
+                and attribute in attribute_list
+            ):
+                valid_options_for_attributes[a].add(attribute_value)
 
-    for row in item_variants_data:
-        item_code, attribute, attribute_value = row
-        if (
-            item_code in filtered_items
-            and attribute not in selected_attributes
-            and attribute in attribute_list
-        ):
-            valid_options_for_attributes[attribute].add(attribute_value)
+        if a in optional_attributes:
+            for variant_code in matching_items_for_attribute:
+                attribute_map = item_attribute_value_map.get(variant_code, {})
+                if attribute_map.get(a, "") == "":
+                    valid_options_for_attributes[a].add("")
+                    break
 
-    optional_attributes = item_cache.get_optional_attributes()
     exact_match = []
     # search for exact match if all selected attributes are required attributes
     if len(selected_attributes.keys()) >= (
@@ -344,13 +354,21 @@ def get_items_with_selected_attributes(item_code, selected_attributes):
     for attribute, values in selected_attributes.items():
         if not isinstance(values, (list, tuple, set)):
             values = [values]
-        values = [value for value in values if value not in (None, "")]
+        values = [value for value in values if value is not None]
         if not values:
             continue
 
         filtered_items = set()
+        item_attribute_value_map = item_cache.get_item_attribute_value_map()
         for value in values:
-            filtered_items.update(attribute_value_item_map.get((attribute, value), []))
+            if value == "":
+                filtered_items.update(
+                    item_code
+                    for item_code, attribute_map in item_attribute_value_map.items()
+                    if attribute_map.get(attribute, "") == ""
+                )
+            else:
+                filtered_items.update(attribute_value_item_map.get((attribute, value), []))
 
         if not filtered_items:
             return set()

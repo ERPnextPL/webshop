@@ -7,6 +7,7 @@ import frappe
 from webshop.webshop.doctype.webshop_settings.webshop_settings import (
 	ShoppingCartSetupError,
 )
+from webshop.webshop.shopping_cart.cart import get_debtors_account
 
 
 class TestWebshopSettings(unittest.TestCase):
@@ -38,6 +39,39 @@ class TestWebshopSettings(unittest.TestCase):
 		settings.append("filter_fields", {"fieldname": "test_data"})
 
 		self.assertRaises(frappe.ValidationError, settings.save)
+
+	def test_checkout_can_remain_enabled_without_payment_gateway(self):
+		settings = frappe.get_doc("Webshop Settings")
+		original_gateway = settings.payment_gateway_account
+		settings.update(
+			{
+				"enable_checkout": 1,
+				"allow_checkout_without_payment": 1,
+			}
+		)
+
+		settings.save()
+
+		self.assertEqual(settings.enable_checkout, 1)
+		self.assertEqual(settings.payment_gateway_account, original_gateway)
+
+	def test_debtors_account_is_not_required_for_checkout_without_payment(self):
+		settings = frappe.get_doc("Webshop Settings")
+		settings.update(
+			{
+				"enable_checkout": 1,
+				"allow_checkout_without_payment": 1,
+			}
+		)
+
+		self.assertIsNone(get_debtors_account(settings))
+
+	def test_request_quote_button_can_be_hidden(self):
+		settings = frappe.get_doc("Webshop Settings")
+		settings.show_request_for_quotation_button = 0
+		settings.save()
+
+		self.assertEqual(settings.show_request_for_quotation_button, 0)
 
 
 def setup_webshop_settings(values_dict):
