@@ -15,25 +15,20 @@
 
 {% block header_actions %}
 	<div class="row">
-		<div class="dropdown">
-			<button class="btn btn-sm btn-secondary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-				<span class="font-md">{{ _('Actions') }}</span>
-				<b class="caret"></b>
-			</button>
-			<ul class="dropdown-menu dropdown-menu-right" role="menu">
-				{% if doc.doctype == 'Purchase Order' and show_make_pi_button %}
+		{% if doc.doctype == 'Purchase Order' and show_make_pi_button %}
+			<div class="dropdown">
+				<button class="btn btn-sm btn-secondary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+					<span class="font-md">{{ _('Actions') }}</span>
+					<b class="caret"></b>
+				</button>
+				<ul class="dropdown-menu dropdown-menu-right" role="menu">
 					<a class="dropdown-item"
 						href="/api/method/erpnext.buying.doctype.purchase_order.purchase_order.make_purchase_invoice_from_portal?purchase_order_name={{ doc.name }}"
 						data-action="make_purchase_invoice">{{ _("Make Purchase Invoice") }}
 					</a>
-				{% endif %}
-				<a class="dropdown-item"
-					href='/printview?doctype={{ doc.doctype}}&name={{ doc.name }}&format={{ print_format }}' target="_blank"
-					rel="noopener noreferrer">
-					{{ _("Print") }}
-				</a>
-			</ul>
-		</div>
+				</ul>
+			</div>
+		{% endif %}
 		<div class="form-column col-sm-6">
 			<div class="page-header-actions-block" data-html-block="header-actions">
 				<p>
@@ -66,6 +61,8 @@
 				<span class="indicator-pill {{ doc.indicator_color or (" blue" if doc.docstatus==1 else "darkgrey" ) }}">
 					{% if doc.doctype == "Quotation" and not doc.docstatus %}
 						{{ _("Pending") }}
+					{% elif customer_facing_status %}
+						{{ _(customer_facing_status) }}
 					{% else %}
 						{{ _(doc.get('indicator_title')) or _(doc.status) or _("Submitted") }}
 					{% endif %}

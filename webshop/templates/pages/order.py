@@ -7,12 +7,25 @@ from frappe import _
 from webshop.webshop.doctype.webshop_settings.webshop_settings import show_attachments
 
 
+def get_customer_facing_status(doc):
+	if "zetka_utils" not in frappe.get_installed_apps():
+		return None
+
+	from zetka_utils.overrides.sales_order import get_customer_facing_status as _get_status
+
+	return _get_status(doc)
+
+
 def get_context(context):
 	context.no_cache = 1
 	context.show_sidebar = True
 	context.doc = frappe.get_doc(frappe.form_dict.doctype, frappe.form_dict.name)
 	if hasattr(context.doc, "set_indicator"):
 		context.doc.set_indicator()
+
+	context.customer_facing_status = None
+	if context.doc.doctype == "Sales Order":
+		context.customer_facing_status = get_customer_facing_status(context.doc)
 
 	if show_attachments():
 		context.attachments = get_attachments(frappe.form_dict.doctype, frappe.form_dict.name)
