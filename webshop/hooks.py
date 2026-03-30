@@ -30,7 +30,11 @@ fixtures = [
     {
         "dt": "Web Page",
         "filters": [["route", "in", ["shop-home"]]],
-    }
+    },
+    {
+        "dt": "Custom Field",
+        "filters": [["name", "in", ["Customer Group-custom_allowed_brands"]]],
+    },
 ]
 
 override_doctype_class = {

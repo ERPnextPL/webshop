@@ -26,6 +26,9 @@ from webshop.webshop.redisearch_utils import (
     update_index_for_item,
 )
 from webshop.webshop.shopping_cart.cart import _set_price_list, get_party
+from webshop.webshop.utils.customer_group_brand_visibility import (
+    get_brand_restriction_for_user,
+)
 from webshop.webshop.variant_selector.item_variants_cache import (
     ItemVariantsCacheManager,
 )
@@ -621,6 +624,10 @@ def has_website_permission_for_website_item(doc, ptype, user, verbose=False):
 
     if user == "Administrator":
         return True
+
+    restrict_brands, allowed_brands = get_brand_restriction_for_user(user=user)
+    if restrict_brands and doc.brand not in allowed_brands:
+        return False
 
     if frappe.has_permission("Website Item", ptype=ptype, doc=doc, user=user):
         return True

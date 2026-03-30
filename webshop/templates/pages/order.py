@@ -16,6 +16,62 @@ def get_customer_facing_status(doc):
 	return _get_status(doc)
 
 
+def get_related_delivery_notes(doc):
+	if doc.doctype != "Sales Order":
+		return []
+
+	delivery_note_names = frappe.get_all(
+		"Delivery Note Item",
+		filters={"against_sales_order": doc.name},
+		distinct=True,
+		pluck="parent",
+	)
+	if not delivery_note_names:
+		return []
+
+	return frappe.get_all(
+		"Delivery Note",
+		filters={"name": ["in", delivery_note_names], "docstatus": ["<", 2]},
+		fields=["name", "creation", "modified", "docstatus"],
+		order_by="creation desc",
+	)
+
+
+def get_related_sales_invoices(doc, delivery_note_names=None):
+	if doc.doctype != "Sales Order":
+		return []
+
+	filters = {"sales_order": doc.name}
+	invoice_names = set(
+		frappe.get_all(
+			"Sales Invoice Item",
+			filters=filters,
+			distinct=True,
+			pluck="parent",
+		)
+	)
+
+	if delivery_note_names:
+		invoice_names.update(
+			frappe.get_all(
+				"Sales Invoice Item",
+				filters={"delivery_note": ["in", delivery_note_names]},
+				distinct=True,
+				pluck="parent",
+			)
+		)
+
+	if not invoice_names:
+		return []
+
+	return frappe.get_all(
+		"Sales Invoice",
+		filters={"name": ["in", list(invoice_names)], "docstatus": ["<", 2]},
+		fields=["name", "creation", "modified", "docstatus"],
+		order_by="creation desc",
+	)
+
+
 def get_context(context):
 	context.no_cache = 1
 	context.show_sidebar = True
@@ -26,6 +82,14 @@ def get_context(context):
 	context.customer_facing_status = None
 	if context.doc.doctype == "Sales Order":
 		context.customer_facing_status = get_customer_facing_status(context.doc)
+		context.related_delivery_notes = get_related_delivery_notes(context.doc)
+		context.related_sales_invoices = get_related_sales_invoices(
+			context.doc,
+			[delivery_note.name for delivery_note in context.related_delivery_notes],
+		)
+	else:
+		context.related_delivery_notes = []
+		context.related_sales_invoices = []
 
 	if show_attachments():
 		context.attachments = get_attachments(frappe.form_dict.doctype, frappe.form_dict.name)

@@ -10,7 +10,18 @@
 {% endblock %}
 
 {% block header %}
-	<h3 class="m-0">{{ doc.name }}</h3>
+	<h3 class="m-0 d-flex align-items-center flex-wrap">
+		<span>{{ doc.name }}</span>
+		<span class="indicator-pill ml-3 d-none d-lg-inline-flex {{ doc.indicator_color or (" blue" if doc.docstatus==1 else "darkgrey" ) }}">
+			{% if doc.doctype == "Quotation" and not doc.docstatus %}
+				{{ _("Pending") }}
+			{% elif customer_facing_status %}
+				{{ _(customer_facing_status) }}
+			{% else %}
+				{{ _(doc.get('indicator_title')) or _(doc.status) or _("Submitted") }}
+			{% endif %}
+		</span>
+	</h3>
 {% endblock %}
 
 {% block header_actions %}
@@ -57,7 +68,7 @@
 			</div>
 		</div>
 		<div class="row indicator-container mt-2">
-			<div class="col-10">
+			<div class="col-12 d-lg-none">
 				<span class="indicator-pill {{ doc.indicator_color or (" blue" if doc.docstatus==1 else "darkgrey" ) }}">
 					{% if doc.doctype == "Quotation" and not doc.docstatus %}
 						{{ _("Pending") }}
@@ -68,15 +79,43 @@
 					{% endif %}
 				</span>
 			</div>
-			<div class="text-right col-2">
+			<div class="col-12 mt-3">
 				{%- set party_name = doc.supplier_name if doc.doctype in ['Supplier Quotation', 'Purchase Invoice', 'Purchase
 				Order'] else doc.customer_name %}
-				<b>{{ party_name }}</b>
+				<div class="border rounded p-3 bg-white">
+					<div class="row">
+						<div class="col-lg-4 col-md-6 col-12 mb-3 mb-lg-0">
+							<div class="small text-muted text-uppercase mb-2">{{ _("Customer Details") }}</div>
+							<div class="font-weight-bold mb-2">{{ party_name }}</div>
 
-				{% if doc.contact_display and doc.contact_display != party_name %}
-					<br>
-					{{ doc.contact_display }}
-				{% endif %}
+							{% if doc.contact_display and doc.contact_display != party_name %}
+								<div class="small text-muted mb-2">{{ doc.contact_display }}</div>
+							{% endif %}
+
+							{% if doc.tax_id %}
+								<div class="small"><strong>NIP:</strong> {{ doc.tax_id }}</div>
+							{% endif %}
+						</div>
+
+						<div class="col-lg-4 col-md-6 col-12 mb-3 mb-lg-0">
+							<div class="small text-muted text-uppercase mb-2">{{ _("Billing Details") }}</div>
+							{% if doc.address_display %}
+								<div class="small">{{ doc.address_display | safe }}</div>
+							{% else %}
+								<div class="small text-muted">{{ _("No billing details") }}</div>
+							{% endif %}
+						</div>
+
+						<div class="col-lg-4 col-md-12 col-12">
+							<div class="small text-muted text-uppercase mb-2">{{ _("Delivery Details") }}</div>
+							{% if doc.shipping_address %}
+								<div class="small">{{ doc.shipping_address | safe }}</div>
+							{% else %}
+								<div class="small text-muted">{{ _("No delivery details") }}</div>
+							{% endif %}
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 
@@ -87,7 +126,7 @@
 		<div class="order-container mt-4">
 			<!-- items -->
 			<div class="w-100">
-				<div class="order-items order-item-header mb-1 row text-muted">
+				<div class="order-items order-item-header mb-2 row text-muted d-none d-md-flex py-md-2">
 					<span class="col-5">
 						{{ _("Item") }}
 					</span>
@@ -102,19 +141,22 @@
 					</span>
 				</div>
 				{% for d in doc.items %}
-				<div class="order-items row align-items-center">
-					<span class="order-item-name col-5 pr-0">
+				<div class="order-items row align-items-center py-2 py-md-3">
+					<span class="order-item-name col-12 col-md-5 pr-0 pr-md-3 mb-2 mb-md-0">
 						{{ item_name_and_description(d) }}
 					</span>
 
-					<span class="d-s-n col-3 pl-10">
-						{{ d.get_formatted("qty") }}
+					<span class="col-4 col-md-3 pl-10 py-md-1">
+						<span class="d-block d-md-none small text-muted">{{ _("Quantity") }}</span>
+						<span>{{ d.get_formatted("qty") }}</span>
 					</span>
-					<span class="order-rate pl-4 col-2">
-						{{ d.get_formatted("rate") }}
+					<span class="order-rate col-4 col-md-2 pl-4 pl-md-4 py-md-1">
+						<span class="d-block d-md-none small text-muted">{{ _("Rate") }}</span>
+						<span>{{ d.get_formatted("rate") }}</span>
 					</span>
-					<span class="col-2 text-right">
-						{{ d.get_formatted("amount") }}
+					<span class="col-4 col-md-2 text-right py-md-1">
+						<span class="d-block d-md-none small text-muted text-left">{{ _("Amount") }}</span>
+						<span>{{ d.get_formatted("amount") }}</span>
 					</span>
 				</div>
 				{% endfor %}
@@ -125,6 +167,91 @@
 				{% include "webshop/templates/includes/order/order_taxes.html" %}
 			</div>
 		</div>
+
+		{% set submitted_sales_invoices = related_sales_invoices | selectattr("docstatus", "equalto", 1) | list %}
+		{% set related_documents_count = (related_delivery_notes | length) + (submitted_sales_invoices | length) %}
+		{% if related_documents_count %}
+			<details class="mt-5 mb-4 border rounded bg-white related-documents-panel" {% if related_documents_count == 1 %}open{% endif %}>
+				<summary class="p-3 d-flex align-items-center justify-content-between" style="cursor: pointer; list-style: none;">
+					<span class="d-flex align-items-center">
+						<span class="related-documents-chevron mr-2" aria-hidden="true">
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+								<path d="M9 6l6 6l-6 6"></path>
+							</svg>
+						</span>
+						<span>
+							<span class="small text-muted text-uppercase d-block">{{ _("Related Documents") }}</span>
+							<span class="font-weight-bold">{{ related_documents_count }} {{ _("Documents") }}</span>
+						</span>
+					</span>
+				</summary>
+				<style>
+					.related-documents-panel summary::-webkit-details-marker {
+						display: none;
+					}
+
+					.related-documents-chevron {
+						display: inline-flex;
+						transition: transform 0.2s ease;
+					}
+
+					.related-documents-panel[open] .related-documents-chevron {
+						transform: rotate(90deg);
+					}
+				</style>
+				<div class="px-3 pb-3">
+					{% if related_delivery_notes %}
+						<div class="mb-4">
+							<div class="small text-muted text-uppercase mb-2">{{ _("Related Delivery Notes") }}</div>
+							{% for delivery_note in related_delivery_notes %}
+								<div class="border rounded p-3 mb-2">
+									<div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+										<div class="mb-2 mb-sm-0">
+											<div class="small text-muted text-uppercase">{{ _("Delivery Note") }}</div>
+											<div class="font-weight-bold">{{ delivery_note.name }}</div>
+										</div>
+										<div>
+											<span class="indicator-pill {{ 'green' if delivery_note.docstatus == 1 else 'orange' }}">
+												{{ _("Submitted") if delivery_note.docstatus == 1 else _("Not Submitted") }}
+											</span>
+										</div>
+									</div>
+									<div class="row small">
+										<div class="col-sm-6 mb-2 mb-sm-0">
+											<div class="text-muted text-uppercase">{{ _("Created") }}</div>
+											<div>{{ frappe.utils.format_datetime(delivery_note.creation, "medium") }}</div>
+										</div>
+										<div class="col-sm-6">
+											<div class="text-muted text-uppercase">{{ _("Submitted") }}</div>
+											<div>
+												{% if delivery_note.docstatus == 1 %}
+													{{ frappe.utils.format_datetime(delivery_note.modified, "medium") }}
+												{% else %}
+													{{ _("Not Submitted") }}
+												{% endif %}
+											</div>
+										</div>
+									</div>
+								</div>
+							{% endfor %}
+						</div>
+					{% endif %}
+
+					{% if submitted_sales_invoices %}
+						<div>
+							<div class="small text-muted text-uppercase mb-2">{{ _("Related Sales Invoices") }}</div>
+							{% for sales_invoice in submitted_sales_invoices %}
+								<div class="border rounded p-3 mb-2">
+									<div class="small text-muted text-uppercase">{{ _("Sales Invoice") }}</div>
+									<div class="font-weight-bold">{{ sales_invoice.name }}</div>
+									</div>
+							{% endfor %}
+						</div>
+					{% endif %}
+				</div>
+			</details>
+		{% endif %}
 	</div>
 
 	{% if enabled_checkout and can_pay_for_order and ((doc.doctype=="Sales Order" and doc.per_billed <= 0)

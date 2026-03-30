@@ -3,6 +3,9 @@
 import frappe
 from frappe import _
 from frappe.utils import floor
+from webshop.webshop.utils.customer_group_brand_visibility import (
+    get_brand_restriction_for_user,
+)
 
 
 class ProductFiltersBuilder:
@@ -13,6 +16,7 @@ class ProductFiltersBuilder:
             self.doc = frappe.get_doc("Item Group", item_group)
 
         self.item_group = item_group
+        self.restrict_brands, self.allowed_brands = get_brand_restriction_for_user()
 
     def get_field_filters(self):
         from webshop.webshop.doctype.override_doctype.item_group import (
@@ -82,6 +86,9 @@ class ProductFiltersBuilder:
                     item_filters["variant_of"] = ["is", "not set"]
 
                 # Get link field values attached to published items
+                if self.restrict_brands:
+                    item_filters["brand"] = ["in", self.allowed_brands]
+
                 item_values = frappe.get_all(
                     "Website Item",
                     fields=[df.fieldname],
