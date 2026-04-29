@@ -12,6 +12,26 @@
 		</div>
 	</div>
 
+	{% if warehouse_pickup_enabled and pickup_warehouse_details %}
+	<div class="mt-3 mb-2" data-section="warehouse-pickup">
+		<label for="input_pickup_from_warehouse" style="display: inline-flex; align-items: flex-start; gap: 10px; margin: 0;">
+			<input
+				type="checkbox"
+				id="input_pickup_from_warehouse"
+				style="width: 16px !important; height: 16px !important; min-width: 16px; min-height: 16px; margin-top: 2px;"
+				{% if doc.custom_pickup_from_warehouse %}checked{% endif %}
+			>
+			<span>
+				<span class="label-area font-md">Odbiór osobisty z magazynu: {{ pickup_warehouse_details.display_name }}</span><br>
+				{% if pickup_warehouse_details.address %}
+					<span class="text-muted small">{{ pickup_warehouse_details.address | safe }}</span><br>
+				{% endif %}
+				<span class="text-muted small">Koszt dostawy nie zostanie doliczony.</span>
+			</span>
+		</label>
+	</div>
+	{% endif %}
+
 	<hr>
 	{% for address in shipping_addresses %}
 	{% if doc.shipping_address_name == address.name %}
@@ -66,6 +86,25 @@ frappe.ready(() => {
 	$('#input_same_billing').change((e) => {
 		const $check = $(e.target);
 		toggle_billing_address_section(!$check.is(':checked'));
+	});
+
+	$('#input_pickup_from_warehouse').change((e) => {
+		const enabled = $(e.target).is(':checked');
+		toggle_pickup_state(enabled);
+
+		frappe.call({
+			type: 'POST',
+			method: 'webshop.webshop.shopping_cart.cart.set_pickup_from_warehouse',
+			freeze: true,
+			args: {
+				enabled: enabled ? 1 : 0
+			},
+			callback: function(r) {
+				if (!r.exc) {
+					window.location.reload();
+				}
+			}
+		});
 	});
 
 	$('.btn-new-address').click(() => {
@@ -177,12 +216,28 @@ frappe.ready(() => {
 		if (billing_address) {
 			$(`[data-section="billing-address"] [data-address-name="${billing_address}"] .address-card`).addClass('active');
 		}
+
+		toggle_pickup_state($('#input_pickup_from_warehouse').is(':checked'));
 	}
 
 	setup_state();
 
 	function toggle_billing_address_section(flag) {
 		$('[data-section="billing-address"]').toggle(flag);
+	}
+
+	function toggle_pickup_state(enabled) {
+		const $sameBilling = $('#input_same_billing');
+		const $shippingSection = $('[data-section="shipping-address"]');
+
+		$shippingSection.find('.btn-new-address, .btn-change-address').toggle(!enabled);
+
+		if (enabled) {
+			$sameBilling.prop('checked', false).prop('disabled', true);
+			toggle_billing_address_section(true);
+		} else {
+			$sameBilling.prop('disabled', false);
+		}
 	}
 });
 </script>

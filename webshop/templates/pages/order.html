@@ -108,7 +108,13 @@
 
 						<div class="col-lg-4 col-md-12 col-12">
 							<div class="small text-muted text-uppercase mb-2">{{ _("Delivery Details") }}</div>
-							{% if doc.shipping_address %}
+							{% if pickup_warehouse_details %}
+								<div class="small font-weight-bold mb-1">{{ _("Warehouse Pickup") }}</div>
+								<div class="small font-weight-bold">{{ pickup_warehouse_details.display_name }}</div>
+								{% if pickup_warehouse_details.address %}
+									<div class="small">{{ pickup_warehouse_details.address | safe }}</div>
+								{% endif %}
+							{% elif doc.shipping_address %}
 								<div class="small">{{ doc.shipping_address | safe }}</div>
 							{% else %}
 								<div class="small text-muted">{{ _("No delivery details") }}</div>

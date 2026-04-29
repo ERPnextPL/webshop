@@ -14,6 +14,15 @@ from frappe.utils.nestedset import get_root_of
 from webshop.webshop.doctype.webshop_settings.webshop_settings import (
     get_shopping_cart_settings,
 )
+from webshop.webshop.shopping_cart.pickup import (
+    PICKUP_FROM_WAREHOUSE_FIELD,
+    apply_pickup_to_sales_order,
+    clear_pickup_from_warehouse,
+    enforce_pickup_from_warehouse,
+    get_pickup_warehouse_details,
+    is_pickup_from_warehouse,
+    is_warehouse_pickup_configured,
+)
 from webshop.webshop.utils.product import get_web_item_qty_in_stock
 
 
@@ -22,9 +31,9 @@ class WebsitePriceListMissingError(frappe.ValidationError):
 
 
 def get_cart_item_uom(item_code):
-    return frappe.get_cached_value("Item", item_code, "sales_uom") or frappe.get_cached_value(
-        "Item", item_code, "stock_uom"
-    )
+    return frappe.get_cached_value(
+        "Item", item_code, "sales_uom"
+    ) or frappe.get_cached_value("Item", item_code, "stock_uom")
 
 
 def cart_item_qty_must_be_whole_number(item_code):
@@ -70,12 +79,21 @@ def get_cart_quotation(doc=None):
     if not doc.customer_address and addresses:
         update_cart_address("billing", addresses[0].name)
 
+    warehouse_pickup_enabled = is_warehouse_pickup_configured()
+    pickup_enabled = is_pickup_from_warehouse(doc)
+    pickup_warehouse_details = get_pickup_warehouse_details(
+        doc.get("custom_pickup_warehouse") if pickup_enabled else None,
+        required=pickup_enabled,
+    )
+
     return {
         "doc": decorate_quotation_doc(doc),
         "shipping_addresses": get_shipping_addresses(party),
         "billing_addresses": get_billing_addresses(party),
-        "shipping_rules": get_applicable_shipping_rules(party),
+        "shipping_rules": get_applicable_shipping_rules(party, doc),
         "cart_settings": frappe.get_cached_doc("Webshop Settings"),
+        "warehouse_pickup_enabled": warehouse_pickup_enabled,
+        "pickup_warehouse_details": pickup_warehouse_details,
     }
 
 
@@ -131,6 +149,8 @@ def place_order():
         _make_sales_order(quotation.name, ignore_permissions=True)
     )
     sales_order.payment_schedule = []
+
+    apply_pickup_to_sales_order(quotation, sales_order)
 
     if not cint(cart_settings.allow_items_not_in_stock):
         for item in sales_order.get("items"):
@@ -372,9 +392,12 @@ def decorate_quotation_doc(doc):
                     d.thumbnail = variant_data.image
                     fields = fields[2:]
 
-        website_item_data = frappe.db.get_value(
-            "Website Item", {"item_code": item_code}, fields, as_dict=True
-        ) or {}
+        website_item_data = (
+            frappe.db.get_value(
+                "Website Item", {"item_code": item_code}, fields, as_dict=True
+            )
+            or {}
+        )
         d.update(website_item_data)
 
         website_warehouse = frappe.get_cached_value(
@@ -498,9 +521,17 @@ def apply_cart_settings(party=None, quotation=None):
 
     set_price_list_and_rate(quotation, cart_settings)
 
+    if is_pickup_from_warehouse(quotation):
+        enforce_pickup_from_warehouse(quotation)
+
     quotation.run_method("calculate_taxes_and_totals")
 
     set_taxes(quotation, cart_settings)
+
+    if is_pickup_from_warehouse(quotation):
+        enforce_pickup_from_warehouse(quotation)
+        quotation.run_method("calculate_taxes_and_totals")
+        return
 
     _apply_shipping_rule(party, quotation, cart_settings)
 
@@ -532,7 +563,11 @@ def _set_price_list(cart_settings, quotation=None):
     from erpnext.accounts.party import get_default_price_list
 
     party = None if quotation else get_party(create=False)
-    party_name = quotation.get("party_name") if quotation else (party.get("name") if party else None)
+    party_name = (
+        quotation.get("party_name")
+        if quotation
+        else (party.get("name") if party else None)
+    )
     selling_price_list = None
 
     # check if default customer price list exists
@@ -745,7 +780,27 @@ def get_address_docs(
 def apply_shipping_rule(shipping_rule):
     quotation = _get_cart_quotation()
 
-    quotation.shipping_rule = shipping_rule
+    quotation.shipping_rule = (
+        None if is_pickup_from_warehouse(quotation) else shipping_rule
+    )
+
+    apply_cart_settings(quotation=quotation)
+
+    quotation.flags.ignore_permissions = True
+    quotation.save()
+
+    return get_cart_quotation(quotation)
+
+
+@frappe.whitelist()
+def set_pickup_from_warehouse(enabled):
+    quotation = _get_cart_quotation()
+    quotation.set(PICKUP_FROM_WAREHOUSE_FIELD, cint(enabled))
+
+    if cint(enabled):
+        enforce_pickup_from_warehouse(quotation)
+    else:
+        clear_pickup_from_warehouse(quotation)
 
     apply_cart_settings(quotation=quotation)
 
@@ -756,6 +811,10 @@ def apply_shipping_rule(shipping_rule):
 
 
 def _apply_shipping_rule(party=None, quotation=None, cart_settings=None):
+    if is_pickup_from_warehouse(quotation):
+        quotation.shipping_rule = None
+        return
+
     if not quotation.shipping_rule:
         shipping_rules = get_shipping_rules(quotation, cart_settings)
 
@@ -771,10 +830,12 @@ def _apply_shipping_rule(party=None, quotation=None, cart_settings=None):
 
 
 def get_applicable_shipping_rules(party=None, quotation=None):
+    if quotation and is_pickup_from_warehouse(quotation):
+        return []
+
     shipping_rules = get_shipping_rules(quotation)
 
     if shipping_rules:
-        rule_label_map = frappe.db.get_values("Shipping Rule", shipping_rules, "label")
         # we need this in sorted order as per the position of the rule in the settings page
         return [[rule, rule] for rule in shipping_rules]
 
@@ -782,6 +843,9 @@ def get_applicable_shipping_rules(party=None, quotation=None):
 def get_shipping_rules(quotation=None, cart_settings=None):
     if not quotation:
         quotation = _get_cart_quotation()
+
+    if is_pickup_from_warehouse(quotation):
+        return []
 
     shipping_rules = []
     if quotation.shipping_address_name:

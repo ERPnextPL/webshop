@@ -41,6 +41,7 @@ override_doctype_class = {
     "Payment Request": "webshop.webshop.doctype.override_doctype.payment_request.PaymentRequest",
     "Item Group": "webshop.webshop.doctype.override_doctype.item_group.WebshopItemGroup",
     "Item": "webshop.webshop.doctype.override_doctype.item.WebshopItem",
+    "Sales Order": "webshop.webshop.doctype.override_doctype.sales_order.WebshopSalesOrder",
 }
 
 doctype_js = {
@@ -71,6 +72,11 @@ doc_events = {
             "webshop.webshop.crud_events.quotation.validate_shopping_cart_items.execute",
         ],
     },
+    "Webshop Settings": {
+        "validate": [
+            "webshop.webshop.shopping_cart.pickup.validate_webshop_pickup_settings",
+        ],
+    },
     "Price List": {
         "validate": [
             "webshop.webshop.crud_events.price_list.check_impact_on_cart.execute"
@@ -85,5 +91,5 @@ doc_events = {
 
 has_website_permission = {
     "Website Item": "webshop.webshop.doctype.website_item.website_item.has_website_permission_for_website_item",
-    "Item Group": "webshop.webshop.doctype.website_item.website_item.has_website_permission_for_item_group"
+    "Item Group": "webshop.webshop.doctype.website_item.website_item.has_website_permission_for_item_group",
 }

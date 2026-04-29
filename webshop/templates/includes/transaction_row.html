@@ -11,6 +11,16 @@
 			<span class="indicator-pill {{ doc.indicator_color or ("blue" if doc.docstatus==1 else "gray") }} list-item-status">
 				{{ _(doc.get('indicator_title')) or _(doc.status) }}
 			</span>
+			{% if doc.pickup_warehouse_details %}
+				<div class="small text-muted mt-1">
+					{{ _("Warehouse Pickup") }}: {{ doc.pickup_warehouse_details.display_name }}
+				</div>
+				{% if doc.pickup_warehouse_details.address_text %}
+					<div class="small text-muted ellipsis ellipsis-width">
+						{{ doc.pickup_warehouse_details.address_text }}
+					</div>
+				{% endif %}
+			{% endif %}
 		</div>
 		<div class="col-sm-2">
 			<div class="small text-muted items-preview ellipsis ellipsis-width">
