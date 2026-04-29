@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480" role="img" aria-labelledby="title desc">
+  <title id="title">Product image unavailable</title>
+  <desc id="desc">A neutral product placeholder for webshop items without a photo.</desc>
+  <defs>
+    <linearGradient id="surface" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8fafc"/>
+      <stop offset="1" stop-color="#e7ece8"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f3f3b"/>
+      <stop offset="1" stop-color="#2f6b61"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="480" rx="28" fill="url(#surface)"/>
+  <path d="M96 344h448" stroke="#d6ddd9" stroke-width="18" stroke-linecap="round"/>
+  <path d="M148 300c0-38 31-69 69-69h206c38 0 69 31 69 69v42H148v-42z" fill="#ffffff" stroke="#d7dedb" stroke-width="14"/>
+  <path d="M178 230c0-28 23-51 51-51h182c28 0 51 23 51 51v76H178v-76z" fill="#ffffff" stroke="#d7dedb" stroke-width="14"/>
+  <path d="M194 253h252" stroke="#e4e9e6" stroke-width="14" stroke-linecap="round"/>
+  <path d="M205 356v28M435 356v28" stroke="#9aa7a1" stroke-width="16" stroke-linecap="round"/>
+  <circle cx="320" cy="162" r="46" fill="url(#accent)" opacity="0.12"/>
+  <path d="M294 163l19 19 37-44" fill="none" stroke="url(#accent)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

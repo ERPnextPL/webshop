@@ -92,8 +92,8 @@ webshop.ProductSearch = class {
 
 	setupProductsContainer() {
 		this.products_container = this.search_dropdown.append(`
-			<div id="product-results mt-2">
-				<div id="product-scroll" style="overflow: scroll; max-height: 300px">
+			<div id="product-results" class="mt-2">
+				<div id="product-scroll" class="search-results-scroll">
 				</div>
 			</div>
 		`).find("#product-scroll");
@@ -197,11 +197,15 @@ webshop.ProductSearch = class {
 		let html = "";
 
 		product_results.forEach((res) => {
-			let thumbnail = res.thumbnail || '/assets/webshop/images/cart-empty-state.png';
+			const fallback_image = "/assets/webshop/images/product-fallback.svg";
+			let thumbnail = res.thumbnail || fallback_image;
 			html += `
-				<div class="dropdown-item" style="display: flex;">
-					<img class="item-thumb col-2" src=${encodeURI(thumbnail)} />
-					<div class="col-9" style="white-space: normal;">
+				<div class="dropdown-item search-result-item">
+					<div class="search-result-thumb-wrap">
+						<img class="item-thumb search-result-thumb ${ res.thumbnail ? '' : 'product-fallback-image' }" src="${encodeURI(thumbnail)}"
+							onerror="this.onerror=null;this.src='${ fallback_image }';this.classList.add('product-fallback-image');" />
+					</div>
+					<div class="search-result-body">
 						<a href="/${res.route}">${res.web_item_name}</a><br>
 						<span class="brand-line">${res.brand ? "by " + res.brand : ""}</span>
 					</div>

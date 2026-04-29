@@ -1,33 +1,32 @@
 {% macro product_image_square(website_image, css_class="") %}
+{% set fallback_image = "/assets/webshop/images/product-fallback.svg" %}
 <div class="product-image product-image-square h-100 rounded
-	{% if not website_image -%} missing-image {%- endif %} {{ css_class }}"
-	{% if website_image -%}
-	style="background-image: url('{{ frappe.utils.quoted(website_image) | abs_url }}');"
-	{%- endif %}>
+	{{ css_class }}"
+	style="background-image: url('{{ (frappe.utils.quoted(website_image) | abs_url) if website_image else fallback_image }}'); background-position: center center; background-size: cover; background-repeat: no-repeat; background-color: var(--product-placeholder-bg);">
 </div>
 {% endmacro %}
 
 {% macro product_image(website_image, css_class="product-image", alt="", no_border=False) %}
+	{% set fallback_image = "/assets/webshop/images/product-fallback.svg" %}
 	<div class="{{ 'border' if not no_border else ''}} text-center rounded {{ css_class }}" style="overflow: hidden;">
 		{% if website_image %}
-			<img itemprop="image" class="website-image h-100 w-100" alt="{{ _(alt) }}" src="{{ frappe.utils.quoted(website_image) | abs_url }}">
+			<img itemprop="image" class="website-image h-100 w-100" alt="{{ _(alt) }}" src="{{ frappe.utils.quoted(website_image) | abs_url }}" onerror="this.onerror=null;this.src='{{ fallback_image }}';this.classList.add('product-fallback-image');">
 		{% else %}
-			<div itemprop="image" class="card-img-top no-image-item">
-				{{ frappe.utils.get_abbr(alt) or "NA" }}
-			</div>
+			<img itemprop="image" class="website-image h-100 w-100 product-fallback-image" alt="{{ _(alt) }}" src="{{ fallback_image }}">
 		{% endif %}
 	</div>
 {% endmacro %}
 
 {% macro media_image(website_image, name, css_class="") %}
+	{% set fallback_image = "/assets/webshop/images/product-fallback.svg" %}
 	<div class="product-image sidebar-image-wrapper {{ css_class }}">
 		{% if not website_image -%}
-		<div class="sidebar-standard-image"> <div class="standard-image" style="background-color: rgb(250, 251, 252);">{{_(name)}}</div> </div>
+		<div class="sidebar-standard-image"><img itemprop="image" src="{{ fallback_image }}" alt="{{ _(name) }}" class="img-responsive img-thumbnail sidebar-image product-fallback-image"></div>
 		{%- endif %}
 		{% if website_image -%}
 			<a href="{{ frappe.utils.quoted(website_image) }}">
 				<img itemprop="image" src="{{ frappe.utils.quoted(website_image) | abs_url }}"
-					class="img-responsive img-thumbnail sidebar-image" style="min-height:100%; min-width:100%;">
+					class="img-responsive img-thumbnail sidebar-image" style="min-height:100%; min-width:100%;" onerror="this.onerror=null;this.src='{{ fallback_image }}';this.classList.add('product-fallback-image');">
 			</a>
 		{%- endif %}
 	</div>
@@ -75,6 +74,7 @@
 {%- set title = item.web_item_name or item.item_name or item.item_code -%}
 {%- set title = title[:50] + "..." if title|len > 50 else title -%}
 {%- set image = item.website_image -%}
+{%- set fallback_image = "/assets/webshop/images/product-fallback.svg" -%}
 {%- set description = item.website_description or item.description-%}
 
 {% if is_featured %}
@@ -83,7 +83,7 @@
 		{% if image %}
 		<div class="row no-gutters">
 			<div class="col-md-5 ml-4">
-				<img class="card-img" src="{{ image }}" alt="{{ _(title) }}">
+				<img class="card-img" src="{{ image }}" alt="{{ _(title) }}" onerror="this.onerror=null;this.src='{{ fallback_image }}';this.classList.add('product-fallback-image');">
 			</div>
 			<div class="col-md-6">
 				{{ item_card_body(title, description, item, is_featured, align,template) }}
@@ -102,14 +102,12 @@
 		{% if image %}
 			<div class="card-img-container">
 				<a href="/{{ item.route or '#' }}" style="text-decoration: none;">
-					<img class="card-img" src="{{ image }}" alt="{{ _(title )}}">
+					<img class="card-img" src="{{ image }}" alt="{{ _(title )}}" onerror="this.onerror=null;this.src='{{ fallback_image }}';this.classList.add('product-fallback-image');">
 				</a>
 			</div>
 		{% else %}
 		<a href="/{{ item.route or '#' }}" style="text-decoration: none;">
-			<div class="card-img-top no-image">
-				{{ frappe.utils.get_abbr(title) }}
-			</div>
+			<img class="card-img product-fallback-image" src="{{ fallback_image }}" alt="{{ _(title) }}">
 		</a>
 		{% endif %}
 		{{ item_card_body(title, description, item, is_featured, align,template) }}

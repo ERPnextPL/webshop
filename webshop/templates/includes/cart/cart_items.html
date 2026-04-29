@@ -23,11 +23,9 @@
 		<!-- Product Image -->
 		<div class="cart-item-image">
 			{% if d.thumbnail %}
-				<img src="{{ d.thumbnail }}" alt="{{ d.web_item_name }}" class="cart-item-img">
+				<img src="{{ d.thumbnail }}" alt="{{ d.web_item_name }}" class="cart-item-img" onerror="this.onerror=null;this.src='/assets/webshop/images/product-fallback.svg';this.classList.add('product-fallback-image');">
 			{% else %}
-				<div class="no-image-cart-item">
-					{{ frappe.utils.get_abbr(d.web_item_name) or "NA" }}
-				</div>
+				<img src="/assets/webshop/images/product-fallback.svg" alt="{{ d.web_item_name or d.item_name }}" class="cart-item-img product-fallback-image">
 			{% endif %}
 		</div>
 

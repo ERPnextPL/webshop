@@ -35,27 +35,18 @@ webshop.ProductGrid = class {
 	}
 
 	get_image_html(item, title) {
-		let image = item.website_image;
+		const fallback_image = "/assets/webshop/images/product-fallback.svg";
+		const image = item.website_image || fallback_image;
+		const image_class = item.website_image ? "card-img" : "card-img product-fallback-image";
 
-		if (image) {
-			return `
-				<div class="card-img-container">
-					<a href="/${ item.route || '#' }" style="text-decoration: none;">
-						<img itemprop="image" class="card-img" src="${ image }" alt="${ title }">
-					</a>
-				</div>
-			`;
-		} else {
-			return `
-				<div class="card-img-container">
-					<a href="/${ item.route || '#' }" style="text-decoration: none;">
-						<div class="card-img-top no-image">
-							${ frappe.get_abbr(title) }
-						</div>
-					</a>
-				</div>
-			`;
-		}
+		return `
+			<div class="card-img-container">
+				<a href="/${ item.route || '#' }" style="text-decoration: none;">
+					<img itemprop="image" class="${ image_class }" src="${ image }" alt="${ title }"
+						onerror="this.onerror=null;this.src='${ fallback_image }';this.classList.add('product-fallback-image');">
+				</a>
+			</div>
+		`;
 	}
 
 	get_card_body_html(item, title, settings) {

@@ -103,16 +103,21 @@
 	<div class="cart-empty-state">
 		<img src="/assets/webshop/images/cart-empty-state.png" alt="Empty State">
 	</div>
-	<div class="cart-empty-message mt-4">{{ _('Your cart is Empty') }}</p>
-	{% if cart_settings.enable_checkout %}
-		<a class="btn btn-outline-primary" href="/orders" style="font-size: 16px;">
-			{{ _('See past orders') }}
+	<div class="cart-empty-message mt-4">{{ _('Your cart is Empty') }}</div>
+	<div class="cart-empty-actions">
+		<a class="btn btn-primary" href="/all-products">
+			{{ _('Continue Shopping') }}
 		</a>
+		{% if cart_settings.enable_checkout %}
+			<a class="btn btn-outline-primary" href="/orders">
+				{{ _('See past orders') }}
+			</a>
 		{% else %}
-		<a class="btn btn-outline-primary" href="/quotations" style="font-size: 16px;">
-			{{ _('See past quotations') }}
-		</a>
-	{% endif %}
+			<a class="btn btn-outline-primary" href="/quotations">
+				{{ _('See past quotations') }}
+			</a>
+		{% endif %}
+	</div>
 </div>
 {% endif %}
 

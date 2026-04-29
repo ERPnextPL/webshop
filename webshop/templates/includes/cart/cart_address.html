@@ -22,11 +22,11 @@
 				{% if doc.custom_pickup_from_warehouse %}checked{% endif %}
 			>
 			<span>
-				<span class="label-area font-md">Odbiór osobisty z magazynu: {{ pickup_warehouse_details.display_name }}</span><br>
+				<span class="label-area font-md">{{ _("Pickup from warehouse: {0}").format(pickup_warehouse_details.display_name) }}</span><br>
 				{% if pickup_warehouse_details.address %}
 					<span class="text-muted small">{{ pickup_warehouse_details.address | safe }}</span><br>
 				{% endif %}
-				<span class="text-muted small">Koszt dostawy nie zostanie doliczony.</span>
+				<span class="text-muted small">{{ _("Shipping costs will not be added.") }}</span>
 			</span>
 		</label>
 	</div>

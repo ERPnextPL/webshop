@@ -3,34 +3,41 @@
 
 {% block title %}{{ _("All Products") }}{% endblock %}
 {% block header %}
-<div class="mb-6">{{ _("All Products") }}</div>
+<div class="product-listing-heading">
+	<div class="product-listing-title">{{ _("All Products") }}</div>
+</div>
 {% endblock header %}
 
 {% block page_content %}
-<div class="row">
-	<!-- Items section -->
-	<div id="product-listing" class="col-12 order-2 col-md-9 order-md-2 item-card-group-section">
-		<!-- Rendered via JS -->
-	</div>
+<div class="product-listing-page">
+	<button class="btn btn-outline-secondary d-md-none product-filter-toggle" type="button" data-toggle="collapse" data-target="#product-filters" aria-expanded="false" aria-controls="product-filters">
+		{{ _('Filters') }}
+	</button>
 
-	<!-- Filters Section -->
-	<div class="col-12 order-1 col-md-3 order-md-1">
-		<div class="collapse d-md-block mr-4 filters-section" id="product-filters">
-			<div class="d-flex justify-content-between align-items-center mb-5 title-section">
-				<div class="mb-4 filters-title" > {{ _('Filters') }} </div>
-				<a class="mb-4 clear-filters" href="/all-products">{{ _('Clear All') }}</a>
-			</div>
-			<!-- field filters -->
-			{% if field_filters %}
-				{{ field_filter_section(field_filters) }}
-			{% endif %}
-
-			<!-- attribute filters -->
-			{% if attribute_filters %}
-				{{ attribute_filter_section(attribute_filters) }}
-			{% endif %}
+	<div class="row product-listing-layout">
+		<!-- Items section -->
+		<div id="product-listing" class="col-12 order-2 col-md-9 order-md-2 item-card-group-section">
+			<!-- Rendered via JS -->
 		</div>
 
+		<!-- Filters Section -->
+		<div class="col-12 order-1 col-md-3 order-md-1">
+			<div id="product-filters" class="collapse d-md-block mr-4 filters-section">
+				<div class="d-flex justify-content-between align-items-center mb-5 title-section">
+					<div class="mb-4 filters-title" > {{ _('Filters') }} </div>
+					<a class="mb-4 clear-filters" href="/all-products">{{ _('Clear All') }}</a>
+				</div>
+				<!-- field filters -->
+				{% if field_filters %}
+					{{ field_filter_section(field_filters) }}
+				{% endif %}
+
+				<!-- attribute filters -->
+				{% if attribute_filters %}
+					{{ attribute_filter_section(attribute_filters) }}
+				{% endif %}
+			</div>
+		</div>
 	</div>
 </div>
 

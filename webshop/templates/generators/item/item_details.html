@@ -1,4 +1,4 @@
-{% set has_product_media = (gallery_images and gallery_images | length) or doc.website_image or doc.thumbnail or "https://zetkameble.pl/wp-content/uploads/2025/03/349a1c58dd610ece9883ec97716747eb-300x160.png" %}
+{% set has_product_media = (gallery_images and gallery_images | length) or doc.website_image or doc.thumbnail or "/assets/webshop/images/product-fallback.svg" %}
 {% set width_class = "expand" if not has_product_media else "" %}
 {% set cart_settings = shopping_cart.cart_settings %}
 {% set product_info = shopping_cart.product_info %}

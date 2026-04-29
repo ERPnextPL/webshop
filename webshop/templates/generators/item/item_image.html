@@ -1,8 +1,9 @@
 {% set column_size = 5 %}
 <div class="col-md-{{ column_size }} product-media-column">
 	{% set gallery_images = gallery_images or [] %}
-	{% set fallback_image = doc.website_image or doc.thumbnail or "https://zetkameble.pl/wp-content/uploads/2025/03/349a1c58dd610ece9883ec97716747eb-300x160.png" %}
-	{% set display_images = gallery_images if gallery_images else [{"image": fallback_image, "heading": doc.website_image_alt or doc.item_name}] %}
+	{% set fallback_image = "/assets/webshop/images/product-fallback.svg" %}
+	{% set primary_image = doc.website_image or doc.thumbnail or fallback_image %}
+	{% set display_images = gallery_images if gallery_images else [{"image": primary_image, "heading": doc.website_image_alt or doc.item_name}] %}
 
 	{% if display_images %}
 		<div class="item-gallery-shell" data-gallery-size="{{ display_images | length }}">
@@ -13,6 +14,7 @@
 						class="product-gallery-stage-image website-image"
 						src="{{ frappe.utils.quoted(display_images[0].image) | abs_url }}"
 						alt="{{ _(display_images[0].heading or doc.item_name) }}"
+						onerror="this.onerror=null;this.src='{{ fallback_image }}';this.classList.add('product-fallback-image');"
 					>
 				</div>
 			</div>
@@ -40,9 +42,10 @@
 								data-index="{{ loop.index0 }}"
 								data-image="{{ frappe.utils.quoted(item.image) | abs_url }}"
 								data-alt="{{ _(item.heading or doc.item_name) }}"
+								data-fallback-image="{{ fallback_image }}"
 								aria-label="{{ _('Show image {0}', [loop.index]) }}"
 							>
-								<img class="item-gallery-thumb-image" src="{{ frappe.utils.quoted(item.image) | abs_url }}" alt="{{ _(item.heading or doc.item_name) }}">
+								<img class="item-gallery-thumb-image" src="{{ frappe.utils.quoted(item.image) | abs_url }}" alt="{{ _(item.heading or doc.item_name) }}" onerror="this.onerror=null;this.src='{{ fallback_image }}';this.classList.add('product-fallback-image');">
 							</button>
 						{% endfor %}
 					</div>

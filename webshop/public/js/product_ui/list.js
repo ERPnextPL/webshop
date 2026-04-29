@@ -18,7 +18,7 @@ webshop.ProductList = class {
 
 	make() {
 		let me = this;
-		let html = `<br><br>`;
+		let html = ``;
 
 		this.items.forEach(item => {
 			let title = item.web_item_name || item.item_name || item.item_code || "";
@@ -35,33 +35,21 @@ webshop.ProductList = class {
 	}
 
 	get_image_html(item, title, settings) {
-		let image = item.website_image;
+		const fallback_image = "/assets/webshop/images/product-fallback.svg";
+		const image = item.website_image || fallback_image;
+		const image_class = item.website_image ? "website-image h-100 w-100" : "website-image h-100 w-100 product-fallback-image";
 		let wishlist_enabled = !item.has_variants && settings.enable_wishlist;
 		let image_html = ``;
 
-		if (image) {
-			image_html += `
-				<div class="list-image">
-					<a class="product-link product-list-link" href="/${ item.route || '#' }">
-						<img itemprop="image" class="website-image h-100 w-100" alt="${ title }"
-							src="${ image }">
-					</a>
-					${ wishlist_enabled ? this.get_wishlist_icon(item): '' }
-				</div>
-			`;
-		} else {
-			image_html += `
-				<div class="list-image">
-					<a class="product-link product-list-link" href="/${ item.route || '#' }"
-						style="text-decoration: none">
-						<div class="card-img-top no-image-list">
-							${ frappe.get_abbr(title) }
-						</div>
-					</a>
-					${ wishlist_enabled ? this.get_wishlist_icon(item): '' }
-				</div>
-			`;
-		}
+		image_html += `
+			<div class="list-image">
+				<a class="product-link product-list-link" href="/${ item.route || '#' }">
+					<img itemprop="image" class="${ image_class }" alt="${ title }" src="${ image }"
+						onerror="this.onerror=null;this.src='${ fallback_image }';this.classList.add('product-fallback-image');">
+				</a>
+				${ wishlist_enabled ? this.get_wishlist_icon(item): '' }
+			</div>
+		`;
 
 		return image_html;
 	}
